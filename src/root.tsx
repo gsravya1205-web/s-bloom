@@ -8,6 +8,7 @@ import {
 } from "react-router";
 import { Navbar } from "./components/layout/Navbar";
 import { Footer } from "./components/layout/Footer";
+import { BloomTransition } from "./components/common/BloomTransition";
 import "./index.css";
 
 function ScrollToTop() {
@@ -32,6 +33,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         <ScrollToTop />
+        <BloomTransition />
         <div className="app-layout">
           <Navbar />
           <main style={{ flex: 1 }}>

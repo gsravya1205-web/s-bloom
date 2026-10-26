@@ -9,7 +9,7 @@
 }
 
 .why-better-container {
-  max-width: 1320px;
+  max-width: 1440px;
   margin: 0 auto;
   padding: 0 32px;
 }
@@ -271,4 +271,35 @@
   color: #FFFFFF;
   transform: translateX(2px);
   box-shadow: 0 6px 18px rgba(186, 124, 61, 0.35);
+}
+
+@media (max-width: 640px) {
+  .why-better-section {
+    padding: 18px 0;
+  }
+
+  .why-better-container {
+    padding: 0 16px;
+  }
+
+  .why-better-title {
+    font-size: clamp(1.45rem, 5vw, 1.95rem);
+    line-height: 1.2;
+  }
+
+  .why-better-card {
+    padding: 16px 16px;
+  }
+
+  .why-better-proof-banner {
+    padding: 14px 16px;
+    gap: 14px;
+  }
+
+  .why-proof-cta-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 11px 20px;
+    font-size: 0.88rem;
+  }
 }

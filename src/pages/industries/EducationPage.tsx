@@ -69,28 +69,48 @@ export const EducationPage: React.FC = () => {
 
       <div className="industry-container">
         {/* ====================================================
-            HERO BANNER: AI-Powered Growth (from Image 2)
+            HERO BANNER: High-Definition AI-Powered Growth
             ==================================================== */}
         <section className="industry-hero-banner-section">
           <ScrollReveal delay={0}>
-            <div className="industry-hero-banner-wrap">
-              <img
-                src="/edu-hero-ai.png"
-                alt="Help More Students Discover Your Institution with AI-Powered Growth"
-                className="industry-hero-banner-img"
-              />
-              <Link
-                to="/contact"
-                className="industry-hero-banner-cta-overlay"
-                aria-label="Talk to S-BLOOM"
-              />
-            </div>
-            {/* Mobile Fallback CTA Button if banner scales down */}
-            <div className="industry-hero-banner-mobile-cta">
-              <Link to="/contact" className="industry-hero-cta-btn">
-                <span>Talk to S-BLOOM</span>
-                <ArrowRight size={17} strokeWidth={2.4} />
-              </Link>
+            <div className="edu-hero-hd-card">
+              {/* Left Column: Crisp Vector HD Typography */}
+              <div className="edu-hero-hd-left">
+                <div className="edu-hero-hd-eyebrow">
+                  <span className="edu-hero-hd-eyebrow-text">S-BLOOM — EDUCATION</span>
+                  <span className="edu-hero-hd-eyebrow-line" />
+                </div>
+
+                <h1 className="edu-hero-hd-title">
+                  Help More Students <br />
+                  <span className="edu-hero-hd-title-gold">Discover Your Institution</span> <br />
+                  with AI-Powered Growth.
+                </h1>
+
+                <p className="edu-hero-hd-desc">
+                  We help schools, colleges, coaching centres, and training institutes use AI-driven insights and digital marketing to increase visibility, attract the right students, and grow admissions.
+                </p>
+
+                <div className="edu-hero-hd-actions">
+                  <Link to="/contact" className="edu-hero-hd-cta-btn">
+                    <span>Talk to S-BLOOM</span>
+                    <ArrowRight size={17} strokeWidth={2.4} />
+                  </Link>
+                </div>
+              </div>
+
+              {/* Right Column: Crystal Clear High-Definition 3D Visual */}
+              <div className="edu-hero-hd-right">
+                <img
+                  src="/edu-hero-visual-hd.jpg"
+                  alt="Education AI Growth Analytics, student inquiries and admissions insights"
+                  className="edu-hero-hd-img"
+                  width={1200}
+                  height={896}
+                  loading="eager"
+                  decoding="async"
+                />
+              </div>
             </div>
           </ScrollReveal>
         </section>

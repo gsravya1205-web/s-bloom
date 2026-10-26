@@ -1,12 +1,13 @@
 /* ==========================================================================
    CLIENT LOGO MARQUEE COMPONENT (3-ROW ALTERNATING SCROLL)
    S-BLOOM Luxury Palette (Champagne Gold, Ivory, Warm Mocha)
+   Refined spacing: 80-100px top space, 48-64px row gaps, 1440px container
    ========================================================================== */
 
 .client-logo-marquee-section {
   position: relative;
   z-index: 2;
-  padding: 28px 0 20px;
+  padding: 92px 0 80px;
   width: 100%;
   overflow: hidden;
   box-sizing: border-box;
@@ -14,30 +15,30 @@
 
 .client-logo-container {
   width: 100%;
-  max-width: 1360px;
+  max-width: 1440px;
   margin: 0 auto;
-  padding: 0 16px;
+  padding: 0 32px;
   box-sizing: border-box;
 }
 
 /* ==========================================================================
-   HEADER
+   HEADER (Generous breathing room for eyebrow & heading)
    ========================================================================== */
 .client-logo-header {
   text-align: center;
-  max-width: 820px;
-  margin: 0 auto 18px;
+  max-width: 860px;
+  margin: 0 auto 52px;
 }
 
 .client-logo-eyebrow-wrap {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
+  gap: 14px;
+  margin-bottom: 12px;
 }
 
 .client-logo-eyebrow-line {
-  width: 32px;
+  width: 36px;
   height: 1.5px;
   background: #BA7C3D;
   opacity: 0.8;
@@ -54,9 +55,9 @@
 
 .client-logo-title {
   font-family: var(--font-heading);
-  font-size: clamp(1.6rem, 2.7vw, 2.3rem);
+  font-size: clamp(1.85rem, 2.8vw, 2.45rem);
   font-weight: 800;
-  line-height: 1.2;
+  line-height: 1.25;
   color: #17120F;
   margin: 0;
   letter-spacing: -0.015em;
@@ -71,55 +72,56 @@
 
 .client-logo-desc {
   font-family: var(--font-body);
-  font-size: 0.90rem;
-  line-height: 1.55;
+  font-size: 0.94rem;
+  line-height: 1.6;
   color: #554438;
   max-width: 680px;
-  margin: 0 auto;
+  margin: 14px auto 0;
 }
 
 /* ==========================================================================
-   MARQUEE WRAPPER & FADE MASKS
+   MARQUEE WRAPPER & REFINED FADE MASKS (48-64px vertical spacing between rows)
    ========================================================================== */
 .logo-marquee-wrapper {
   position: relative;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 2px 0;
+  gap: 52px;
+  padding: 8px 0;
   width: 100%;
 }
 
+/* Restrained edge fades (no excessive washing out of central logos) */
 .logo-marquee-fade-left,
 .logo-marquee-fade-right {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 120px;
+  width: 70px;
   pointer-events: none;
   z-index: 5;
 }
 
 .logo-marquee-fade-left {
   left: 0;
-  background: linear-gradient(to right, #FAF7F1 15%, rgba(250, 247, 241, 0) 100%);
+  background: linear-gradient(to right, #FAF7F1 20%, rgba(250, 247, 241, 0) 100%);
 }
 
 .logo-marquee-fade-right {
   right: 0;
-  background: linear-gradient(to left, #FAF7F1 15%, rgba(250, 247, 241, 0) 100%);
+  background: linear-gradient(to left, #FAF7F1 20%, rgba(250, 247, 241, 0) 100%);
 }
 
 @media (max-width: 768px) {
   .logo-marquee-fade-left,
   .logo-marquee-fade-right {
-    width: 50px;
+    width: 40px;
   }
 }
 
 /* ==========================================================================
-   ROWS & HARDWARE ACCELERATED TRACKS
+   ROWS & HARDWARE ACCELERATED TRACKS (Increased horizontal gaps)
    ========================================================================== */
 .logo-marquee-row {
   width: 100%;
@@ -130,7 +132,7 @@
 
 .logo-marquee-track {
   display: flex;
-  gap: 16px;
+  gap: 64px;
   width: max-content;
   will-change: transform;
 }
@@ -143,21 +145,21 @@
 .logo-marquee-group {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 64px;
   flex-shrink: 0;
 }
 
-/* Speed Variations for Organic Asynchrony */
+/* Smooth organic pacing */
 .logo-marquee-track.speed-normal {
-  animation-duration: 42s;
+  animation-duration: 32s;
 }
 
 .logo-marquee-track.speed-fast {
-  animation-duration: 35s;
+  animation-duration: 26s;
 }
 
 .logo-marquee-track.speed-slow {
-  animation-duration: 48s;
+  animation-duration: 38s;
 }
 
 /* Direction: Left to Right (LTR) */
@@ -193,16 +195,16 @@
 }
 
 /* ==========================================================================
-   LOGO ITEMS (NO WHITE BOXES, PURE LOGOS FLOATING ON CANVAS)
+   LOGO ITEMS (PROPORTIONAL, CRISP, EASY TO DISTINGUISH)
    ========================================================================== */
 .logo-item,
 .logo-card {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
-  padding: 2px 10px;
-  height: 48px;
-  min-width: 70px;
+  padding: 6px 18px;
+  height: 56px;
+  min-width: 120px;
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -222,14 +224,14 @@
 
 .client-marquee-img,
 .logo-card-img {
-  max-height: 38px;
-  max-width: 140px;
+  max-height: 44px;
+  max-width: 155px;
   width: auto;
   object-fit: contain;
   display: block;
   mix-blend-mode: multiply;
-  opacity: 0.95;
-  filter: contrast(1.05) saturate(1.03);
+  opacity: 1;
+  filter: contrast(1.04) saturate(1.02);
   transition: transform 0.25s ease;
 }
 
@@ -240,20 +242,6 @@
   transform: scale(1.06);
 }
 
-@media (max-width: 768px) {
-  .logo-item,
-  .logo-card {
-    padding: 2px 8px;
-    height: 36px;
-    min-width: 60px;
-  }
-  .client-marquee-img,
-  .logo-card-img {
-    max-height: 28px;
-    max-width: 100px;
-  }
-}
-
 /* ==========================================================================
    BOTTOM TRUST NOTE
    ========================================================================== */
@@ -261,9 +249,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  margin-top: 24px;
-  font-size: 0.76rem;
+  gap: 10px;
+  margin-top: 48px;
+  font-size: 0.80rem;
   font-weight: 700;
   color: #8C6A4F;
   letter-spacing: 0.02em;
@@ -274,4 +262,82 @@
   height: 6px;
   border-radius: 50%;
   background: #BA7C3D;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN BREAKPOINTS
+   ========================================================================== */
+@media (max-width: 960px) {
+  .client-logo-marquee-section {
+    padding: 72px 0 60px;
+  }
+
+  .client-logo-header {
+    margin-bottom: 40px;
+  }
+
+  .logo-marquee-wrapper {
+    gap: 40px;
+  }
+
+  .logo-marquee-track,
+  .logo-marquee-group {
+    gap: 44px;
+  }
+
+  .logo-item {
+    height: 48px;
+    min-width: 100px;
+    padding: 4px 12px;
+  }
+
+  .client-marquee-img {
+    max-height: 38px;
+    max-width: 130px;
+  }
+}
+
+@media (max-width: 640px) {
+  .client-logo-marquee-section {
+    padding: 56px 0 48px;
+  }
+
+  .client-logo-container {
+    padding: 0 16px;
+  }
+
+  .client-logo-header {
+    margin-bottom: 32px;
+  }
+
+  .client-logo-title {
+    font-size: clamp(1.45rem, 5.2vw, 1.95rem);
+  }
+
+  .logo-marquee-wrapper {
+    gap: 32px;
+  }
+
+  .logo-marquee-track,
+  .logo-marquee-group {
+    gap: 36px;
+  }
+
+  .logo-item {
+    height: 42px;
+    min-width: 80px;
+    padding: 2px 8px;
+  }
+
+  .client-marquee-img {
+    max-height: 32px;
+    max-width: 110px;
+  }
+
+  .client-logo-bottom-note {
+    margin-top: 32px;
+    font-size: 0.74rem;
+    padding: 0 12px;
+    text-align: center;
+  }
 }

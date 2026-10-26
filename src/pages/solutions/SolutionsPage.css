@@ -1403,3 +1403,228 @@
     transform: none !important;
   }
 }
+
+/* ==========================================================================
+   PROMOTE SECTION VIDEO PLAYER (IMG_3694.mp4)
+   ========================================================================== */
+
+.sol-video-only-view {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sol-promote-video-box {
+  position: relative;
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #1C1410;
+  border: 1.5px solid rgba(201, 149, 46, 0.45);
+  box-shadow: 0 12px 36px rgba(53, 37, 31, 0.18);
+  aspect-ratio: 16 / 10;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.sol-promote-video-box:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 44px rgba(53, 37, 31, 0.24);
+}
+
+@media (max-width: 640px) {
+  .sol-promote-video-box {
+    aspect-ratio: 16 / 11;
+  }
+}
+
+.sol-promote-video-element {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.sol-video-sound-floating-btn {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(28, 20, 16, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1.2px solid rgba(201, 149, 46, 0.5);
+  color: #FFFCF7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 8;
+}
+
+.sol-video-sound-floating-btn:hover {
+  background: #C9952E;
+  color: #35251F;
+  transform: scale(1.1);
+}
+
+.sol-video-top-overlay {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 5;
+  pointer-events: auto;
+}
+
+.sol-video-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(28, 20, 16, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(201, 149, 46, 0.4);
+  font-family: var(--font-heading);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #FFFCF7;
+}
+
+.sol-video-rec-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #FF3B30;
+  box-shadow: 0 0 6px #FF3B30;
+  animation: solRecBlink 1.4s infinite;
+}
+
+@keyframes solRecBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+.sol-video-controls-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sol-video-mini-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(28, 20, 16, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(201, 149, 46, 0.4);
+  color: #FFFCF7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.68rem;
+}
+
+.sol-video-mini-btn:hover {
+  background: #C9952E;
+  color: #35251F;
+  transform: scale(1.08);
+}
+
+.sol-video-metrics-bar {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  right: 10px;
+  background: rgba(28, 20, 16, 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(201, 149, 46, 0.35);
+  border-radius: 10px;
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 5;
+}
+
+.sol-video-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.sol-v-label {
+  font-size: 0.58rem;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #DFC17B;
+}
+
+.sol-v-val {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #FFFCF7;
+}
+
+.sol-v-divider {
+  width: 1px;
+  height: 18px;
+  background: rgba(201, 149, 46, 0.3);
+}
+
+/* Promote Detail Page 2-Column Hero */
+.sol-detail-hero-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 36px;
+  align-items: center;
+  text-align: left;
+}
+
+.sol-detail-hero-text .sol-hero-title {
+  margin: 10px 0;
+  font-size: clamp(2rem, 3.2vw, 2.75rem);
+  font-weight: 800;
+  color: #35251F;
+}
+
+.sol-detail-hero-text .sol-hero-desc {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #785A46;
+  margin: 0;
+}
+
+.sol-detail-video-wrap {
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .sol-detail-hero-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    text-align: center;
+  }
+
+  .sol-detail-hero-text .sol-hero-title,
+  .sol-detail-hero-text .sol-hero-desc {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}

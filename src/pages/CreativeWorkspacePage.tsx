@@ -3,6 +3,7 @@ import { ScrollReveal } from "../components/ScrollReveal";
 import {
   ArrowRight,
   CheckCircle2,
+  AlertCircle,
   User,
   Mail,
   Phone,
@@ -14,6 +15,7 @@ import {
   Users,
 } from 'lucide-react';
 import { CreativeOrbit } from '../components/CreativeOrbit';
+import { FORM_ENDPOINTS, submitToGoogleSheet } from '../config/forms';
 import './CreativeWorkspacePage.css';
 
 // Custom / Crisp SVG Icons precisely matching Image 2
@@ -108,6 +110,7 @@ export const CreativeWorkspacePage = () => {
   const [formHighlight, setFormHighlight] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<CreativeFormData>({
     fullName: '',
@@ -153,17 +156,32 @@ export const CreativeWorkspacePage = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    setErrorMessage(null);
+    try {
+      await submitToGoogleSheet(FORM_ENDPOINTS.CREATIVE_WORKSPACE, {
+        fullName: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        role: formData.role,
+        portfolioUrl: formData.portfolioUrl,
+      });
       setSubmitted(true);
-    }, 600);
+    } catch (err) {
+      console.error('Failed to submit creative application:', err);
+      setErrorMessage(
+        'Unable to submit your application right now. Please check your internet connection or try again.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleResetForm = () => {
     setSubmitted(false);
+    setErrorMessage(null);
     setFormData({
       fullName: '',
       email: '',
@@ -176,7 +194,7 @@ export const CreativeWorkspacePage = () => {
   return (
     <div className="cw-page">
       {/* =================================================================
-         1. HERO SECTION (Matching Image 1)
+         1. HERO SECTION (Clean, Minimal Ivory Background)
          ================================================================= */}
       <section className="cw-hero">
         <div className="container cw-hero-grid">
@@ -475,6 +493,13 @@ export const CreativeWorkspacePage = () => {
                       </div>
                     </div>
                   </div>
+
+                  {errorMessage && (
+                    <div className="cw-apply-error-banner" role="alert">
+                      <AlertCircle size={16} />
+                      <span>{errorMessage}</span>
+                    </div>
+                  )}
 
                   {/* Submit Button */}
                   <button

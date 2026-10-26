@@ -1,0 +1,297 @@
+/* ==========================================================================
+   S-BLOOM SIGNATURE FLOWER LOGO PAGE TRANSITION
+   Premium Cinematic Brand-Reveal Animation (1.0s Total Duration)
+   - Prominent 120px Logo with Smooth Scale-Up Easing
+   - Premium Champagne Glow Background (Warm Ivory & Soft Champagne Gold)
+   - Gentle Radial Glow Behind Flower with Subtle Slow Fade-In
+   - Delicate Dark Brown (#5A3825) Shimmer & Star Sparkles
+   ========================================================================== */
+
+.sbloom-transition-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 999999;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  /* Cinematic soft optical blur of outgoing page */
+  backdrop-filter: blur(18px) saturate(115%);
+  -webkit-backdrop-filter: blur(18px) saturate(115%);
+  /* Premium Champagne Glow Background: warm ivory & soft champagne-gold diffused light gradient */
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(255, 253, 247, 0.98) 0%,
+    rgba(251, 246, 235, 0.97) 30%,
+    rgba(245, 237, 221, 0.97) 62%,
+    rgba(238, 227, 207, 0.98) 100%
+  );
+  opacity: 0;
+  visibility: hidden;
+  will-change: opacity;
+}
+
+.sbloom-transition-overlay.is-active {
+  pointer-events: auto;
+  visibility: visible;
+  animation: sbloomOverlayCinematic 1000ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.sbloom-transition-overlay.is-idle {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Overlay Lifecycle (1000ms total):
+   0.00s - 0.12s: Elegant smooth fade in with optical blur
+   0.12s - 0.82s: Stable, luxurious Champagne Glow backdrop during bloom & return
+   0.82s - 1.00s: Seamless fade out, gracefully revealing destination page */
+@keyframes sbloomOverlayCinematic {
+  0% {
+    opacity: 0;
+  }
+  12% { /* ~120ms */
+    opacity: 1;
+  }
+  82% { /* ~820ms */
+    opacity: 1;
+  }
+  100% { /* 1000ms */
+    opacity: 0;
+  }
+}
+
+/* --- Subtle Radiant Ambient Glow Behind the Flower (Illuminated Center) --- */
+.sbloom-ambient-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 360px;
+  height: 360px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 1;
+  /* Smooth, diffused light gradient: illuminated warm center softly blending into champagne gold */
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(255, 255, 255, 0.96) 0%,
+    rgba(238, 212, 148, 0.52) 26%,
+    rgba(218, 178, 98, 0.26) 52%,
+    rgba(201, 149, 46, 0.08) 72%,
+    transparent 86%
+  );
+  filter: blur(36px);
+  will-change: transform, opacity;
+}
+
+@media (max-width: 640px) {
+  .sbloom-ambient-glow {
+    width: 280px;
+    height: 280px;
+    filter: blur(28px);
+  }
+}
+
+.sbloom-transition-overlay.is-active .sbloom-ambient-glow {
+  /* Slow, subtle fade-in for a polished brand-reveal experience */
+  animation: sbloomGlowPulse 1000ms cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes sbloomGlowPulse {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.85);
+  }
+  35% { /* Slow, subtle, graceful fade-in */
+    opacity: 0.78;
+    transform: translate(-50%, -50%) scale(1.0);
+  }
+  50% { /* 500ms: Peak illuminated champagne core at full bloom */
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.12);
+  }
+  80% { /* 800ms: Softly receding as petals close */
+    opacity: 0.55;
+    transform: translate(-50%, -50%) scale(0.98);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.90);
+  }
+}
+
+/* --- Centered Logo Flower Stage (120px Desktop / 96px Mobile) --- */
+.sbloom-flower-stage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 120px;
+  height: 120px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: transform, filter;
+}
+
+@media (max-width: 640px) {
+  .sbloom-flower-stage {
+    width: 96px;
+    height: 96px;
+  }
+}
+
+.sbloom-transition-overlay.is-active .sbloom-flower-stage {
+  animation: sbloomStageMotion 1000ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Smooth Scale-Up Animation with Elegant Easing */
+@keyframes sbloomStageMotion {
+  0% {
+    transform: translate(-50%, -50%) scale(0.85);
+    opacity: 0;
+    filter: drop-shadow(0 0 4px rgba(201, 149, 46, 0.3));
+  }
+  12% { /* 120ms: Appears clearly */
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+    filter: drop-shadow(0 0 8px rgba(201, 149, 46, 0.5)) drop-shadow(0 0 16px rgba(201, 149, 46, 0.25));
+  }
+  48% { /* 480ms: Full bloom apex with smooth prominent scale */
+    transform: translate(-50%, -50%) scale(1.12);
+    opacity: 1;
+    filter: drop-shadow(0 0 12px rgba(201, 149, 46, 0.8)) drop-shadow(0 0 24px rgba(201, 149, 46, 0.45));
+  }
+  82% { /* 820ms: Settle back smoothly */
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+    filter: drop-shadow(0 0 6px rgba(201, 149, 46, 0.4));
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.02);
+    opacity: 0;
+    filter: drop-shadow(0 0 2px rgba(201, 149, 46, 0.1));
+  }
+}
+
+.sbloom-flower-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  display: block;
+}
+
+/* --- Exact Petal Unfolding & Return Sequence (1000ms duration) --- */
+.sbloom-petal {
+  transform-origin: 50px 50px;
+  will-change: transform;
+}
+
+.sbloom-transition-overlay.is-active .sbloom-petal {
+  animation: sbloomPetalStory 1000ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: var(--petal-stagger, 0ms);
+}
+
+@keyframes sbloomPetalStory {
+  /* 0.00s - 0.12s: Closed compact 5-petal flower shape */
+  0% {
+    transform: rotate(var(--rest-rot)) scale(1);
+  }
+  12% { /* 120ms */
+    transform: rotate(var(--rest-rot)) scale(1);
+  }
+
+  /* 0.12s - 0.40s: Petals smoothly unfold outward into lotus silhouette */
+  40% { /* 400ms: Full bloom reached */
+    transform: rotate(var(--bloom-rot)) scale(1.15);
+  }
+
+  /* 0.40s - 0.55s: Hold full bloom */
+  55% { /* 550ms */
+    transform: rotate(var(--bloom-rot)) scale(1.15);
+  }
+
+  /* 0.55s - 0.70s: Petals start closing gracefully */
+  68% { /* 680ms */
+    transform: rotate(calc(var(--rest-rot) * 0.48 + var(--bloom-rot) * 0.52)) scale(1.08);
+  }
+
+  /* 0.70s - 0.82s: Flower returns to original shape */
+  82% { /* 820ms: Returned to normal compact flower */
+    transform: rotate(var(--rest-rot)) scale(1);
+  }
+  100% { /* 1000ms: Held through reveal */
+    transform: rotate(var(--rest-rot)) scale(1);
+  }
+}
+
+/* --- Delicate Dark Brown (#5A3825) Glitter & Shimmer Effect --- */
+.sbloom-glitter-particle {
+  fill: #5A3825;
+  stroke: #5A3825;
+  will-change: transform, opacity;
+  transform-origin: center;
+}
+
+.sbloom-transition-overlay.is-active .sbloom-glitter-particle {
+  animation: sbloomGlitterSparkle 1000ms cubic-bezier(0.25, 1, 0.35, 1) forwards;
+  animation-delay: var(--p-delay, 0ms);
+}
+
+@keyframes sbloomGlitterSparkle {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0);
+  }
+  15% { /* 150ms: Sparkles emerge gently */
+    opacity: 0.25;
+    transform: translate(0, 0) scale(0.4);
+  }
+  40% { /* 400ms: Drifting along outer petal contours */
+    opacity: 0.85;
+    transform: translate(var(--tx), var(--ty)) scale(1);
+  }
+  52% { /* 520ms: Peak shimmer at full bloom */
+    opacity: 1;
+    transform: translate(calc(var(--tx) * 1.25), calc(var(--ty) * 1.25)) scale(1.35);
+    filter: drop-shadow(0 0 2px rgba(90, 56, 37, 0.35));
+  }
+  68% { /* 680ms: Fading naturally as petals return */
+    opacity: 0.45;
+    transform: translate(calc(var(--tx) * 0.7), calc(var(--ty) * 0.7)) scale(0.85);
+  }
+  82% { /* 820ms: Softly dissolved */
+    opacity: 0;
+    transform: translate(0, 0) scale(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0);
+  }
+}
+
+/* Center Pistil Node */
+.sbloom-pistil-group {
+  transform-origin: 50px 50px;
+}
+
+/* --- Accessibility: prefers-reduced-motion --- */
+@media (prefers-reduced-motion: reduce) {
+  .sbloom-transition-overlay,
+  .sbloom-ambient-glow,
+  .sbloom-flower-stage,
+  .sbloom-petal,
+  .sbloom-glitter-particle,
+  .sbloom-pistil-group {
+    animation: none !important;
+    transition: none !important;
+    display: none !important;
+  }
+}

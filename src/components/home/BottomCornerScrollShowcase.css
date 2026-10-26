@@ -506,3 +506,31 @@
     padding: 4px 12px;
   }
 }
+
+@media (max-width: 480px) {
+  .corner-circle-widget-wrapper {
+    bottom: 16px;
+    right: 14px;
+  }
+
+  .corner-circle-orb {
+    width: 66px;
+    height: 66px;
+  }
+
+  .corner-circle-svg-ring {
+    width: 74px;
+    height: 74px;
+    inset: -4px;
+  }
+
+  .corner-circle-lens-frame {
+    width: 60px;
+    height: 60px;
+  }
+
+  .corner-circle-label-pill {
+    font-size: 0.65rem;
+    padding: 3px 10px;
+  }
+}

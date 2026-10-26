@@ -1,18 +1,63 @@
-import { Link } from "react-router-dom";
+import React, { useState, useRef } from "react";
+import { Link } from "react-router";
+import { Volume2, VolumeX } from "lucide-react";
 import { ScrollReveal } from "../../components/ScrollReveal";
 
 export const PromotePage = () => {
+  const [isMuted, setIsMuted] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const toggleSound = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !videoRef.current.muted;
+      setIsMuted(videoRef.current.muted);
+    }
+  };
+
   return (
     <div className="page sol-detail-wrapper">
       <section className="sol-hero">
-        <div className="container text-center">
-          <ScrollReveal delay={0}>
-            <span className="sol-hero-label">S-BLOOM SYSTEM — 03</span>
-            <h1 className="sol-hero-title mx-auto">Reach relevant audiences.</h1>
-            <p className="sol-hero-desc mx-auto">
-              Once your foundation is strong and your expertise is clear, the PROMOTE phase amplifies your presence, putting your organization directly in front of the audiences that matter most to accelerate discovery.
-            </p>
-          </ScrollReveal>
+        <div className="container">
+          <div className="sol-detail-hero-grid">
+            <ScrollReveal delay={0}>
+              <div className="sol-detail-hero-text">
+                <span className="sol-hero-label">S-BLOOM SYSTEM — 03</span>
+                <h1 className="sol-hero-title">Reach relevant audiences.</h1>
+                <p className="sol-hero-desc">
+                  Once your foundation is strong and your expertise is clear, the PROMOTE phase amplifies your presence, putting your organization directly in front of the audiences that matter most to accelerate discovery.
+                </p>
+                <div style={{ marginTop: '24px' }}>
+                  <Link to="/contact" className="btn btn-primary">Get Started</Link>
+                </div>
+              </div>
+            </ScrollReveal>
+
+            {/* Right side: Promoted Campaign Video */}
+            <ScrollReveal delay={150}>
+              <div className="sol-detail-video-wrap">
+                <div className="sol-promote-video-box">
+                  <video
+                    ref={videoRef}
+                    src="/IMG_3694.mp4"
+                    autoPlay
+                    muted={isMuted}
+                    loop
+                    playsInline
+                    className="sol-promote-video-element"
+                  />
+                  <button 
+                    type="button" 
+                    onClick={toggleSound} 
+                    className="sol-video-sound-floating-btn"
+                    aria-label={isMuted ? "Unmute audio" : "Mute audio"}
+                    title={isMuted ? "Unmute" : "Mute"}
+                  >
+                    {isMuted ? <VolumeX size={15} /> : <Volume2 size={15} />}
+                  </button>
+                </div>
+              </div>
+            </ScrollReveal>
+          </div>
         </div>
       </section>
 

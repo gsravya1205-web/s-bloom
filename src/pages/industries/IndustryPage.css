@@ -212,6 +212,198 @@
   padding-bottom: 8px;
 }
 
+/* ==========================================================================
+   EDUCATION HIGH-DEFINITION HERO BANNER
+   ========================================================================== */
+.edu-hero-hd-card {
+  position: relative;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 50fr 50fr;
+  align-items: stretch;
+  background: linear-gradient(135deg, #FAF6EE 0%, #FAF5EC 50%, #F5ECDD 100%);
+  border: 1.5px solid #F0E6D8;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgba(80, 50, 30, 0.07);
+  box-sizing: border-box;
+}
+
+.edu-hero-hd-left {
+  position: relative;
+  z-index: 2;
+  padding: clamp(34px, 4vw, 54px) clamp(20px, 3vw, 36px) clamp(34px, 4vw, 54px) clamp(28px, 4.4vw, 56px);
+  max-width: 580px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.edu-hero-hd-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.edu-hero-hd-eyebrow-text {
+  font-family: var(--font-heading, "Cinzel", serif);
+  font-size: 0.80rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #B87B2E;
+}
+
+.edu-hero-hd-eyebrow-line {
+  display: inline-block;
+  width: 28px;
+  height: 1.5px;
+  background: #D6A13A;
+  border-radius: 1px;
+}
+
+.edu-hero-hd-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(2rem, 3.1vw, 3.15rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  color: #1E1611;
+  margin: 0 0 18px 0;
+}
+
+.edu-hero-hd-title-gold {
+  font-style: italic;
+  color: #A86D22;
+  display: inline;
+}
+
+.edu-hero-hd-desc {
+  font-family: var(--font-body, "Inter", sans-serif);
+  font-size: clamp(0.92rem, 1.05vw, 1.02rem);
+  line-height: 1.62;
+  color: #55483D;
+  max-width: 510px;
+  margin: 0 0 28px 0;
+}
+
+.edu-hero-hd-actions {
+  display: flex;
+  align-items: center;
+}
+
+.edu-hero-hd-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: #352016;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 10px;
+  padding: 13px 26px;
+  font-family: var(--font-heading, sans-serif);
+  font-size: 0.94rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(53, 32, 22, 0.22);
+  transition: all 0.22s ease;
+}
+
+.edu-hero-hd-cta-btn:hover {
+  background: #4B2E20;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(53, 32, 22, 0.32);
+  color: #FFFFFF;
+}
+
+.edu-hero-hd-cta-btn svg {
+  transition: transform 0.2s ease;
+}
+
+.edu-hero-hd-cta-btn:hover svg {
+  transform: translateX(3px);
+}
+
+.edu-hero-hd-right {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 420px;
+  overflow: hidden;
+  background: #FAF5EB;
+}
+
+.edu-hero-hd-right::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 50px;
+  background: linear-gradient(90deg, #FAF6EE 0%, rgba(250, 246, 238, 0) 100%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.edu-hero-hd-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  image-rendering: -webkit-optimize-contrast;
+}
+
+@media (max-width: 960px) {
+  .edu-hero-hd-card {
+    grid-template-columns: 1fr;
+    text-align: left;
+  }
+  .edu-hero-hd-left {
+    padding: 36px 28px 24px;
+    max-width: 100%;
+  }
+  .edu-hero-hd-desc {
+    max-width: 100%;
+  }
+  .edu-hero-hd-right {
+    min-height: 320px;
+    max-height: 400px;
+  }
+  .edu-hero-hd-right::before {
+    display: none;
+  }
+  .edu-hero-hd-img {
+    max-height: 400px;
+  }
+}
+
+@media (max-width: 640px) {
+  .edu-hero-hd-left {
+    padding: 28px 20px 20px;
+  }
+  .edu-hero-hd-title {
+    font-size: 1.85rem;
+  }
+  .edu-hero-hd-desc {
+    font-size: 0.92rem;
+    margin-bottom: 22px;
+  }
+  .edu-hero-hd-right {
+    min-height: 250px;
+    max-height: 300px;
+  }
+  .edu-hero-hd-img {
+    max-height: 300px;
+  }
+}
+
 .industry-hero-banner-wrap {
   position: relative;
   width: 100%;

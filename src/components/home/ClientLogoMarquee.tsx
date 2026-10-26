@@ -12,24 +12,10 @@ interface ClientLogoMarqueeProps {
 export const ClientLogoMarquee: React.FC<ClientLogoMarqueeProps> = ({
   logos = CLIENT_LOGOS,
 }) => {
-  // Stagger / offset the 9 logos across the 3 rows so each line features different logos
-  const row1Logos = [...logos, ...logos, ...logos];
-  const row2Logos = [
-    ...logos.slice(3),
-    ...logos.slice(0, 3),
-    ...logos.slice(3),
-    ...logos.slice(0, 3),
-    ...logos.slice(3),
-    ...logos.slice(0, 3),
-  ];
-  const row3Logos = [
-    ...logos.slice(6),
-    ...logos.slice(0, 6),
-    ...logos.slice(6),
-    ...logos.slice(0, 6),
-    ...logos.slice(6),
-    ...logos.slice(0, 6),
-  ];
+  // Stagger the 9 logos across the 3 rows with clean spacing so each line features different prominent logos
+  const row1Logos = [...logos];
+  const row2Logos = [...logos.slice(3), ...logos.slice(0, 3)];
+  const row3Logos = [...logos.slice(6), ...logos.slice(0, 6)];
 
   const renderLogoCard = (logo: ClientLogo, keySuffix: string | number) => (
     <div key={`${logo.id}-${keySuffix}`} className="logo-item" title={logo.name}>

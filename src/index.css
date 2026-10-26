@@ -55,9 +55,21 @@ a {
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1440px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 32px;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 16px;
+  }
 }
 
 /* Animations */
@@ -108,7 +120,7 @@ a {
 }
 .logo-img,
 .navbar-logo-img {
-  height: 34px;
+  height: 39px;
   width: auto;
   display: block;
   object-fit: contain;
@@ -709,9 +721,77 @@ a {
 }
 
 @media (max-width: 640px) {
+  .hero-final-section {
+    padding-top: 84px;
+    padding-bottom: 24px;
+    min-height: auto;
+  }
+
+  .hero-final-container {
+    min-height: auto;
+    gap: 24px;
+    width: 94%;
+  }
+
+  .hero-final-title {
+    font-size: clamp(2.2rem, 7.8vw, 3.2rem);
+    letter-spacing: -1px;
+    line-height: 1.08;
+    margin-bottom: 16px;
+  }
+
+  .hero-final-desc {
+    font-size: 0.98rem;
+    line-height: 1.5;
+    margin-bottom: 24px;
+  }
+
+  .hero-final-eyebrow .eyebrow-text {
+    font-size: 0.72rem;
+    letter-spacing: 1.5px;
+  }
+
+  .hero-final-eyebrow .eyebrow-line {
+    width: 28px;
+  }
+
   .hero-floating-icons-container {
-    transform: scale(0.72);
-    height: 380px;
+    transform: scale(0.68);
+    height: 320px;
+    max-width: 100%;
+  }
+
+  .hero-final-showcase {
+    min-height: 320px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-final-title {
+    font-size: 2.15rem;
+  }
+
+  .hero-final-buttons {
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .btn-final-primary,
+  .btn-final-secondary {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 20px;
+    font-size: 0.92rem;
+  }
+
+  .hero-floating-icons-container {
+    transform: scale(0.56);
+    height: 270px;
+  }
+
+  .hero-final-showcase {
+    min-height: 270px;
   }
 }
 
@@ -2282,231 +2362,463 @@ a {
 
 /* Digital Growth System Styles & Lower Continuous Canvas */
 :root {
-  --sbloom-silk-bg: url('/sbloom-luxury-silk-bg.jpg');
+  --sbloom-silk-bg: none;
 }
 
-/* Lower Luxury Silk Wrapper - One continuous background for both sections with no breaks */
+/* Lower Wrapper - Clean warm ivory canvas with no blurry diagonal curves */
 .home-lower-silk-wrapper {
   position: relative;
   width: 100%;
-  background-color: #FAF6EE;
-  background-image: 
-    radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.7) 0%, transparent 45%),
-    radial-gradient(circle at 90% 80%, rgba(244, 236, 224, 0.4) 0%, transparent 50%),
-    var(--sbloom-silk-bg);
-  background-size: cover;
-  background-position: center top;
-  background-repeat: no-repeat;
-  border-top: 1px solid rgba(201, 149, 46, 0.22);
+  background-color: #FBF8F2;
+  background-image: none;
+  border-top: 1px solid rgba(201, 149, 46, 0.16);
   overflow: hidden;
 }
 
 .home-lower-silk-wrapper .dgs-section {
-  background: transparent !important;
-  background-image: none !important;
+  background-color: #FBF8F2 !important;
+  background-image: linear-gradient(180deg, #FBF8F2 0%, #FAF6EE 100%) !important;
   border-top: none !important;
-  padding: 50px 0 20px;
+  border-bottom: 1px solid rgba(201, 149, 46, 0.14) !important;
+  padding-top: 52px !important;
+  padding-bottom: 52px !important;
 }
 
 .home-lower-silk-wrapper .dual-path-section {
   background: transparent !important;
   background-image: none !important;
   border-top: none !important;
-  padding: 30px 0 50px;
+  padding: 76px 0 60px !important;
 }
 
 .home-lower-silk-wrapper .home-final-cta-section {
   background: transparent !important;
   background-image: none !important;
   border-top: none !important;
-  padding: 10px 0 40px;
+  padding: 96px 0 110px !important;
 }
 
 .dgs-section {
   position: relative;
-  padding: 50px 0 40px;
-  background-color: #FAF6EE;
-  background-image: 
-    radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.7) 0%, transparent 45%),
-    radial-gradient(circle at 90% 80%, rgba(244, 236, 224, 0.4) 0%, transparent 50%),
-    var(--sbloom-silk-bg);
-  background-size: cover;
-  background-position: center top;
-  background-repeat: no-repeat;
-  border-top: 1px solid rgba(201, 149, 46, 0.22);
-  color: var(--text-primary);
+  padding: 52px 0 52px;
+  background-color: #FBF8F2;
+  background-image: linear-gradient(180deg, #FBF8F2 0%, #FAF6EE 100%);
+  border-bottom: 1px solid rgba(201, 149, 46, 0.14);
+  color: #35251F;
   overflow: hidden;
+  z-index: 5;
 }
 
 .dgs-intro {
   text-align: center;
-  max-width: 800px;
-  margin: 0 auto 28px;
+  max-width: 820px;
+  margin: 0 auto 40px;
+}
+
+.dgs-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.dgs-badge-line {
+  width: 42px;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, #C9952E);
+  display: inline-block;
+}
+
+.dgs-badge .dgs-badge-line:last-child {
+  background: linear-gradient(90deg, #C9952E, transparent);
 }
 
 .dgs-label {
-  font-size: 0.72rem;
-  font-weight: 600;
+  font-family: var(--font-heading);
+  font-size: 0.78rem;
+  font-weight: 700;
   letter-spacing: 2.5px;
-  color: var(--gold-primary);
-  margin-bottom: 8px;
-  display: block;
+  color: #C9952E;
+  display: inline-block;
   text-transform: uppercase;
+  margin-bottom: 0;
 }
 
 .dgs-main-heading {
-  font-size: 2.1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 10px;
-  line-height: 1.15;
-}
-
-.dgs-supporting {
-  font-size: 1.1rem;
-  color: var(--text-secondary);
+  font-family: var(--font-heading);
+  font-size: 2.15rem;
+  font-weight: 750;
+  color: #35251F;
+  margin: 0 auto;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  max-width: 800px;
+  text-align: center;
 }
 
 /* ==========================================================================
-   WHAT SBLOOM CHANGES - STREAMLINE FLOW (NO BOXES, CIRCLE ARROWS)
+   4-STAGE HORIZONTAL FLOW - CLEAN, COMPACT, CONNECTED
    ========================================================================== */
-.dgs-stream-wrapper {
+.dgs-flow-wrapper {
   position: relative;
-  max-width: 1280px;
-  margin: 36px auto 10px;
-  padding: 0 16px;
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 20px;
 }
 
-.dgs-stream-grid {
+.dgs-flow-grid {
+  --dgs-gap: 28px;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
+  gap: var(--dgs-gap);
   position: relative;
   z-index: 2;
 }
 
-.dgs-stream-item {
+/* Individual Stage Column: Compact, no cards, no borders, no arch containers */
+.dgs-stage-col {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  position: relative;
-  padding: 12px 14px 24px;
-  transition: transform 0.3s ease;
+  padding: 0 4px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  min-height: auto;
+  opacity: 0;
+  transform: translateY(12px);
+  will-change: opacity, transform;
 }
 
-.dgs-stream-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  margin-bottom: 14px;
+/* Sequential Staggered Entrance Animation when section enters viewport */
+.dgs-animated .dgs-stage-col {
+  opacity: 1;
+  transform: translateY(0);
 }
 
-.dgs-stream-num {
+.dgs-animated .dgs-stage-col:nth-child(1) {
+  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.1s, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.1s;
+}
+
+.dgs-animated .dgs-stage-col:nth-child(2) {
+  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.25s, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.25s;
+}
+
+.dgs-animated .dgs-stage-col:nth-child(3) {
+  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.4s, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.4s;
+}
+
+.dgs-animated .dgs-stage-col:nth-child(4) {
+  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.55s, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.55s;
+}
+
+/* Prominent Stage Number (01–04) in Champagne Gold */
+.dgs-stage-num {
   font-family: var(--font-heading);
-  font-size: 2.2rem;
-  font-weight: 800;
+  font-size: 1.85rem;
+  font-weight: 750;
   color: #C9952E;
   line-height: 1;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
+  margin-bottom: 10px;
+  display: block;
+  transition: color 0.25s ease;
 }
 
-.dgs-stream-label {
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 2px;
-  color: #4A372E;
-  text-transform: uppercase;
+/* Refined Outline Icon Marker Wrapper */
+.dgs-marker-wrap {
+  position: relative;
+  width: 100%;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.dgs-stream-headline {
+/* Small, Refined Warm-White Icon Circle with Soft Border */
+.dgs-marker-circle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #FFFCF7;
+  border: 1.5px solid #E5D6C2;
+  box-shadow: 0 2px 8px rgba(53, 37, 31, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 3;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.dgs-marker-icon {
+  color: #35251F;
+  transition: color 0.25s ease;
+}
+
+/* Thin Champagne-Gold Connecting Line running behind the icon circles */
+.dgs-connector {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(100% + var(--dgs-gap, 28px));
+  height: 2px;
+  transform: translateY(-50%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.dgs-connector-base {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 1.5px;
+  background: #E5D6C2;
+}
+
+.dgs-connector-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 1.5px;
+  background: #C9952E;
+  transform-origin: left center;
+  transform: scaleX(0);
+}
+
+/* Smooth reveal of the connecting line moving from BUILD to GROW */
+.dgs-animated .dgs-stage-col:nth-child(1) .dgs-connector-fill {
+  transition: transform 0.35s ease-out 0.2s;
+  transform: scaleX(1);
+}
+
+.dgs-animated .dgs-stage-col:nth-child(2) .dgs-connector-fill {
+  transition: transform 0.35s ease-out 0.45s;
+  transform: scaleX(1);
+}
+
+.dgs-animated .dgs-stage-col:nth-child(3) .dgs-connector-fill {
+  transition: transform 0.35s ease-out 0.7s;
+  transform: scaleX(1);
+}
+
+/* Small, Elegant Connection Points between stages */
+.dgs-connector-point {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #FFFCF7;
+  border: 1.5px solid #C9952E;
+  box-shadow: 0 0 6px rgba(201, 149, 46, 0.35);
+  transform: translate(-50%, -50%) scale(0.6);
+  opacity: 0;
+  z-index: 2;
+}
+
+.dgs-animated .dgs-stage-col:nth-child(1) .dgs-connector-point {
+  transition: opacity 0.25s ease 0.38s, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) 0.38s;
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.dgs-animated .dgs-stage-col:nth-child(2) .dgs-connector-point {
+  transition: opacity 0.25s ease 0.62s, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) 0.62s;
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.dgs-animated .dgs-stage-col:nth-child(3) .dgs-connector-point {
+  transition: opacity 0.25s ease 0.85s, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) 0.85s;
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* Subtle Vertical Connector Tick */
+.dgs-stage-tick {
+  width: 1.5px;
+  height: 12px;
+  background: #C9952E;
+  margin: 8px auto 8px;
+  opacity: 0.8;
+  display: block;
+}
+
+/* Stage Name */
+.dgs-stage-name {
   font-family: var(--font-heading);
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #211C1A;
-  line-height: 1.35;
-  margin-bottom: 22px;
-  min-height: 54px;
+  font-size: 0.88rem;
+  font-weight: 750;
+  letter-spacing: 0.2em;
+  color: #35251F;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  display: block;
+}
+
+/* Description directly beneath */
+.dgs-stage-desc {
+  font-family: var(--font-body, system-ui);
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: #6C6470;
+  line-height: 1.4;
+  margin: 0 auto 16px;
+  max-width: 200px;
+  min-height: 42px;
   display: flex;
   align-items: center;
   justify-content: center;
+  text-align: center;
 }
 
-.dgs-stream-action {
-  margin-top: auto;
+/* Button Container & Consistent Outlined Explore Button */
+.dgs-stage-action {
+  margin-top: 0;
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 100%;
 }
 
-/* Explore Action Pill Button (No circle arrow) */
 .dgs-explore-btn {
-  padding: 8px 18px;
-  border-radius: 999px;
-  background: #FFFFFF;
-  border: 1.5px solid #D9A52E;
+  padding: 7px 20px;
+  border-radius: 9999px;
+  background-color: #FFFCF7;
+  border: 1.5px solid #C9952E;
   color: #35251F;
   font-family: var(--font-heading);
-  font-size: 0.84rem;
-  font-weight: 750;
-  letter-spacing: 0.3px;
+  font-size: 0.82rem;
+  font-weight: 650;
+  letter-spacing: 0.15px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 14px rgba(201, 149, 46, 0.14), 0 2px 6px rgba(53, 37, 31, 0.05);
-  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  gap: 7px;
+  box-shadow: 0 2px 6px rgba(201, 149, 46, 0.08);
+  transition: all 0.22s ease;
   cursor: pointer;
   text-decoration: none;
   white-space: nowrap;
 }
 
-.dgs-stream-item:hover .dgs-explore-btn,
-.dgs-explore-btn:hover {
-  background: #35251F;
-  border-color: #35251F;
-  color: #FFFFFF;
+.dgs-btn-arrow {
+  color: #C9952E;
+  transition: transform 0.22s ease, color 0.22s ease;
+}
+
+/* Hover States: Consistent across all 4 buttons */
+.dgs-stage-col:hover .dgs-marker-circle,
+.dgs-stage-col.active .dgs-marker-circle {
+  border-color: #C9952E;
+  box-shadow: 0 4px 12px rgba(201, 149, 46, 0.18);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(53, 37, 31, 0.22), 0 0 14px rgba(217, 165, 46, 0.35);
 }
 
-/* Connecting Divider Arrow between the 4 columns on desktop */
-.dgs-stream-arrow-divider {
-  position: absolute;
-  top: 36px;
-  right: -16px;
-  width: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-  color: #D9A52E;
-  opacity: 0.6;
+.dgs-stage-col:hover .dgs-stage-num,
+.dgs-stage-col.active .dgs-stage-num {
+  color: #A66B26;
 }
 
-/* Responsive */
-@media (max-width: 960px) {
-  .dgs-stream-grid {
+.dgs-explore-btn:hover {
+  background-color: #35251F;
+  border-color: #35251F;
+  color: #FFFCF7;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(53, 37, 31, 0.16);
+}
+
+.dgs-explore-btn:hover .dgs-btn-arrow {
+  color: #FFFCF7;
+  transform: translateX(3px);
+}
+
+/* Accessibility: respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .dgs-stage-col,
+  .dgs-connector-fill,
+  .dgs-connector-point {
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* Responsive Layout */
+@media (max-width: 1024px) {
+  .dgs-flow-grid {
+    --dgs-gap: 16px;
+  }
+  .dgs-connector {
+    width: calc(100% + 16px);
+  }
+  .dgs-stage-desc {
+    font-size: 0.88rem;
+    max-width: 180px;
+  }
+}
+
+@media (max-width: 860px) {
+  .home-lower-silk-wrapper .dgs-section,
+  .dgs-section {
+    padding-top: 48px !important;
+    padding-bottom: 48px !important;
+  }
+  .dgs-intro {
+    margin-bottom: 32px;
+  }
+  .dgs-main-heading {
+    font-size: 1.85rem;
+  }
+  .dgs-flow-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 32px 20px;
   }
-  .dgs-stream-arrow-divider {
+  .dgs-connector {
     display: none;
   }
 }
 
 @media (max-width: 560px) {
-  .dgs-stream-grid {
+  .home-lower-silk-wrapper .dgs-section,
+  .dgs-section {
+    padding-top: 40px !important;
+    padding-bottom: 44px !important;
+  }
+  .dgs-intro {
+    margin-bottom: 28px;
+  }
+  .dgs-flow-grid {
     grid-template-columns: 1fr;
-    gap: 36px;
+    gap: 28px;
+  }
+  .dgs-main-heading {
+    font-size: clamp(1.4rem, 5.5vw, 1.7rem);
+    line-height: 1.25;
+    padding: 0 6px;
+  }
+  .dgs-badge-line {
+    width: 28px;
+  }
+  .dgs-explore-btn {
+    padding: 8px 24px;
+    font-size: 0.84rem;
   }
 }
 
 
-/* Home Final CTA Section with matching luxury silk background */
+/* Home Final CTA Section with matching luxury silk background (80-100px top spacing) */
 .home-final-cta-section {
   position: relative;
-  padding: 70px 0 80px;
+  padding: 96px 0 110px;
   background-color: #FAF6EE;
   background-image: 
     radial-gradient(circle at 50% 35%, rgba(255, 255, 255, 0.8) 0%, transparent 60%),
@@ -2520,29 +2832,35 @@ a {
   overflow: hidden;
 }
 
+.home-final-cta-section .container {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
 .home-final-cta-title {
-  font-size: 2.75rem;
-  font-weight: 700;
+  font-size: clamp(2.2rem, 3.8vw, 3.1rem);
+  font-weight: 750;
   color: #211C1A;
-  margin-bottom: 24px;
-  max-width: 820px;
+  margin-bottom: 32px;
+  max-width: 860px;
   margin-left: auto;
   margin-right: auto;
-  line-height: 1.2;
+  line-height: 1.22;
   letter-spacing: -0.5px;
 }
 
 .home-final-cta-btn-wrap {
-  margin-top: 20px;
+  margin-top: 0;
 }
 
 .home-final-cta-btn {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  padding: 13px 36px;
-  font-size: 1.02rem;
-  font-weight: 600;
+  gap: 14px;
+  padding: 16px 44px;
+  font-size: 1.08rem;
+  font-weight: 650;
   border-radius: 9999px;
   background: linear-gradient(135deg, #4A372E 0%, #2A1D17 100%);
   color: #FFFFFF;
@@ -2567,6 +2885,33 @@ a {
 
 .home-final-cta-btn:hover .cta-arrow {
   transform: translateX(4px);
+}
+
+@media (max-width: 768px) {
+  .home-lower-silk-wrapper .home-final-cta-section,
+  .home-final-cta-section {
+    padding: 68px 0 76px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .home-lower-silk-wrapper .home-final-cta-section,
+  .home-final-cta-section {
+    padding: 52px 0 60px !important;
+  }
+  .home-final-cta-title {
+    font-size: clamp(1.55rem, 5.5vw, 2.1rem);
+    margin-bottom: 22px;
+    padding: 0 10px;
+    line-height: 1.25;
+  }
+  .home-final-cta-btn {
+    padding: 13px 32px;
+    font-size: 0.98rem;
+    width: 100%;
+    max-width: 290px;
+    justify-content: center;
+  }
 }
 
 

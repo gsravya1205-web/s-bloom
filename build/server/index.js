@@ -1,11 +1,11 @@
 import { PassThrough } from "node:stream";
 import { createReadableStreamFromReadable } from "@react-router/node";
-import { Link, Links, Meta, Navigate, Outlet, Scripts, ServerRouter, UNSAFE_withComponentProps, useLocation, useSearchParams } from "react-router";
+import { Link, Links, Meta, Navigate, Outlet, Scripts, ServerRouter, UNSAFE_withComponentProps, useLocation, useNavigate, useSearchParams } from "react-router";
 import { isbot } from "isbot";
 import { renderToPipeableStream } from "react-dom/server";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, BarChart3, BookOpen, Bookmark, Bot, Briefcase, Building2, Calendar, Camera, Check, CheckCircle2, ChevronDown, ChevronUp, Clock, Code2, Compass, Crown, FileText, Film, Gift, Globe, GraduationCap, Heart, Image, LayoutGrid, Leaf, Lightbulb, Link2, Mail, MapPin, Megaphone, Menu, MessageCircle, MessageSquare, Monitor, MonitorSmartphone, Palette, PenTool, Phone, PhoneCall, Play, Rocket, Search, Send, ShieldCheck, Smartphone, Sparkles, Star, Target, TrendingUp, User, UserPlus, Users, Volume2, VolumeX, Wallet, X, Zap } from "lucide-react";
+import { createContext, useCallback, useEffect, useRef, useState } from "react";
+import { AlertCircle, ArrowLeft, ArrowRight, BarChart3, BookOpen, Bookmark, Bot, Briefcase, Building2, Calendar, Camera, Check, CheckCircle2, ChevronDown, ChevronUp, Clock, Code2, Compass, Crown, File, FileText, Film, Gift, Globe, GraduationCap, Heart, Image, LayoutGrid, Leaf, Lightbulb, Link2, Mail, MapPin, Megaphone, Menu, MessageCircle, MessageSquare, Monitor, MonitorSmartphone, Palette, PenTool, Phone, PhoneCall, Play, Rocket, Search, Send, ShieldCheck, Smartphone, Sparkles, Star, Target, TrendingUp, User, UserPlus, Users, Volume2, VolumeX, Wallet, X, Zap } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 //#region \0rolldown/runtime.js
 var __defProp = Object.defineProperty;
@@ -487,6 +487,376 @@ var ContactTile = ({ letter, label, icon, href, external }) => {
 	});
 };
 //#endregion
+//#region src/components/common/BloomTransition.tsx
+var BloomTransitionContext = createContext({
+	navigateWithBloom: () => {},
+	isTransitioning: false
+});
+var TOTAL_TRANSITION_MS = 1e3;
+var NAV_SWITCH_MS = 550;
+var WATCHDOG_MAX_MS = 1800;
+var PETAL_CONFIGS = [
+	{
+		id: 0,
+		restRot: 0,
+		bloomRot: 0,
+		stagger: 0
+	},
+	{
+		id: 1,
+		restRot: 72,
+		bloomRot: 42,
+		stagger: 12
+	},
+	{
+		id: 2,
+		restRot: 144,
+		bloomRot: 84,
+		stagger: 22
+	},
+	{
+		id: 3,
+		restRot: -144,
+		bloomRot: -84,
+		stagger: 22
+	},
+	{
+		id: 4,
+		restRot: -72,
+		bloomRot: -42,
+		stagger: 12
+	}
+];
+var GLITTER_PARTICLES = [
+	{
+		id: 1,
+		x: 50,
+		y: 10,
+		tx: 0,
+		ty: -5,
+		size: 2.2,
+		delay: 10,
+		isStar: true
+	},
+	{
+		id: 2,
+		x: 43,
+		y: 17,
+		tx: -3,
+		ty: -4,
+		size: 1.8,
+		delay: 20,
+		isStar: false
+	},
+	{
+		id: 3,
+		x: 57,
+		y: 17,
+		tx: 3,
+		ty: -4,
+		size: 1.8,
+		delay: 25,
+		isStar: false
+	},
+	{
+		id: 4,
+		x: 74,
+		y: 30,
+		tx: 5,
+		ty: -3,
+		size: 2.4,
+		delay: 30,
+		isStar: true
+	},
+	{
+		id: 5,
+		x: 87,
+		y: 48,
+		tx: 6,
+		ty: 2,
+		size: 2,
+		delay: 40,
+		isStar: false
+	},
+	{
+		id: 6,
+		x: 68,
+		y: 56,
+		tx: 3,
+		ty: 3,
+		size: 1.6,
+		delay: 50,
+		isStar: false
+	},
+	{
+		id: 7,
+		x: 26,
+		y: 30,
+		tx: -5,
+		ty: -3,
+		size: 2.4,
+		delay: 30,
+		isStar: true
+	},
+	{
+		id: 8,
+		x: 13,
+		y: 48,
+		tx: -6,
+		ty: 2,
+		size: 2,
+		delay: 40,
+		isStar: false
+	},
+	{
+		id: 9,
+		x: 32,
+		y: 56,
+		tx: -3,
+		ty: 3,
+		size: 1.6,
+		delay: 50,
+		isStar: false
+	},
+	{
+		id: 10,
+		x: 81,
+		y: 62,
+		tx: 4,
+		ty: 4,
+		size: 1.7,
+		delay: 45,
+		isStar: false
+	},
+	{
+		id: 11,
+		x: 19,
+		y: 62,
+		tx: -4,
+		ty: 4,
+		size: 1.7,
+		delay: 45,
+		isStar: false
+	},
+	{
+		id: 12,
+		x: 50,
+		y: 32,
+		tx: 0,
+		ty: -2,
+		size: 1.6,
+		delay: 35,
+		isStar: true
+	}
+];
+var BloomTransition = () => {
+	const navigate = useNavigate();
+	const [transitionState, setTransitionState] = useState("idle");
+	const isTransitioningRef = useRef(false);
+	const pendingDestRef = useRef(null);
+	const timerNavRef = useRef(null);
+	const timerFinishRef = useRef(null);
+	const timerWatchdogRef = useRef(null);
+	const isInitialMountRef = useRef(true);
+	const clearAllTimers = useCallback(() => {
+		if (timerNavRef.current) {
+			clearTimeout(timerNavRef.current);
+			timerNavRef.current = null;
+		}
+		if (timerFinishRef.current) {
+			clearTimeout(timerFinishRef.current);
+			timerFinishRef.current = null;
+		}
+		if (timerWatchdogRef.current) {
+			clearTimeout(timerWatchdogRef.current);
+			timerWatchdogRef.current = null;
+		}
+	}, []);
+	const triggerBloomNavigation = useCallback((targetUrl) => {
+		if (typeof window === "undefined") return;
+		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+			navigate(targetUrl);
+			window.scrollTo(0, 0);
+			return;
+		}
+		if (isTransitioningRef.current) {
+			if (pendingDestRef.current === targetUrl) return;
+			pendingDestRef.current = targetUrl;
+			return;
+		}
+		isTransitioningRef.current = true;
+		pendingDestRef.current = targetUrl;
+		setTransitionState("active");
+		timerWatchdogRef.current = setTimeout(() => {
+			setTransitionState("idle");
+			isTransitioningRef.current = false;
+			pendingDestRef.current = null;
+			clearAllTimers();
+		}, WATCHDOG_MAX_MS);
+		timerNavRef.current = setTimeout(() => {
+			const dest = pendingDestRef.current;
+			if (dest) {
+				navigate(dest);
+				window.scrollTo(0, 0);
+			}
+		}, NAV_SWITCH_MS);
+		timerFinishRef.current = setTimeout(() => {
+			setTransitionState("idle");
+			isTransitioningRef.current = false;
+			pendingDestRef.current = null;
+			clearAllTimers();
+		}, TOTAL_TRANSITION_MS);
+	}, [navigate, clearAllTimers]);
+	useEffect(() => {
+		if (typeof window === "undefined") return;
+		const handlePopState = () => {
+			if (!isTransitioningRef.current) {
+				if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+				isTransitioningRef.current = true;
+				setTransitionState("active");
+				timerFinishRef.current = setTimeout(() => {
+					setTransitionState("idle");
+					isTransitioningRef.current = false;
+					clearAllTimers();
+				}, TOTAL_TRANSITION_MS);
+			}
+		};
+		window.addEventListener("popstate", handlePopState);
+		return () => {
+			window.removeEventListener("popstate", handlePopState);
+		};
+	}, [clearAllTimers]);
+	useEffect(() => {
+		if (typeof window === "undefined") return;
+		if (isInitialMountRef.current) isInitialMountRef.current = false;
+		const handleGlobalClick = (event) => {
+			if (event.button !== 0) return;
+			if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
+			const target = event.target;
+			const anchor = target === null || target === void 0 ? void 0 : target.closest("a");
+			if (!anchor) return;
+			if (anchor.hasAttribute("data-no-bloom")) return;
+			if (anchor.hasAttribute("download")) return;
+			if (anchor.target && anchor.target !== "_self") return;
+			const rawHref = anchor.getAttribute("href");
+			if (!rawHref) return;
+			if (rawHref.startsWith("mailto:") || rawHref.startsWith("tel:") || rawHref.startsWith("javascript:")) return;
+			let targetUrl;
+			try {
+				targetUrl = new URL(anchor.href, window.location.href);
+			} catch (_unused) {
+				return;
+			}
+			if (targetUrl.origin !== window.location.origin) return;
+			const isSamePathname = targetUrl.pathname === window.location.pathname;
+			const isSameSearch = targetUrl.search === window.location.search;
+			if (rawHref.startsWith("#") || isSamePathname && isSameSearch && targetUrl.hash) return;
+			if (isSamePathname && isSameSearch && !targetUrl.hash) {
+				event.preventDefault();
+				window.scrollTo({
+					top: 0,
+					behavior: "smooth"
+				});
+				return;
+			}
+			event.preventDefault();
+			const destination = targetUrl.pathname + targetUrl.search + targetUrl.hash;
+			triggerBloomNavigation(destination);
+		};
+		document.addEventListener("click", handleGlobalClick, { capture: true });
+		return () => {
+			document.removeEventListener("click", handleGlobalClick, { capture: true });
+			clearAllTimers();
+		};
+	}, [triggerBloomNavigation, clearAllTimers]);
+	const isActive = transitionState === "active";
+	return /* @__PURE__ */ jsx(BloomTransitionContext.Provider, {
+		value: {
+			navigateWithBloom: triggerBloomNavigation,
+			isTransitioning: isActive
+		},
+		children: /* @__PURE__ */ jsxs("div", {
+			className: `sbloom-transition-overlay ${isActive ? "is-active" : "is-idle"}`,
+			"aria-hidden": "true",
+			role: "presentation",
+			children: [/* @__PURE__ */ jsx("div", { className: "sbloom-ambient-glow" }), /* @__PURE__ */ jsx("div", {
+				className: "sbloom-flower-stage",
+				children: /* @__PURE__ */ jsxs("svg", {
+					viewBox: "0 0 100 100",
+					className: "sbloom-flower-svg",
+					fill: "none",
+					xmlns: "http://www.w3.org/2000/svg",
+					children: [
+						/* @__PURE__ */ jsx("g", {
+							className: "sbloom-petals-group",
+							children: PETAL_CONFIGS.map((petal) => /* @__PURE__ */ jsx("g", {
+								className: "sbloom-petal",
+								style: {
+									"--rest-rot": `${petal.restRot}deg`,
+									"--bloom-rot": `${petal.bloomRot}deg`,
+									"--petal-stagger": `${petal.stagger}ms`
+								},
+								children: /* @__PURE__ */ jsx("path", {
+									d: "M 50,47.5 C 41.5,42 41,26 50,16.5 C 59,26 58.5,42 50,47.5 Z",
+									stroke: "#C9952E",
+									strokeWidth: "1.3",
+									strokeLinecap: "round",
+									strokeLinejoin: "round",
+									fill: "none"
+								})
+							}, `story-petal-${petal.id}`))
+						}),
+						/* @__PURE__ */ jsx("g", {
+							className: "sbloom-glitter-group",
+							children: GLITTER_PARTICLES.map((p) => {
+								const style = {
+									"--tx": `${p.tx}px`,
+									"--ty": `${p.ty}px`,
+									"--p-delay": `${p.delay}ms`
+								};
+								if (p.isStar) return /* @__PURE__ */ jsx("path", {
+									className: "sbloom-glitter-particle",
+									style,
+									d: `M ${p.x},${p.y - 3} Q ${p.x},${p.y} ${p.x + 3},${p.y} Q ${p.x},${p.y} ${p.x},${p.y + 3} Q ${p.x},${p.y} ${p.x - 3},${p.y} Z`,
+									fill: "#5A3825",
+									stroke: "#5A3825",
+									strokeWidth: "0.4"
+								}, `glitter-star-${p.id}`);
+								return /* @__PURE__ */ jsx("circle", {
+									className: "sbloom-glitter-particle",
+									style,
+									cx: p.x,
+									cy: p.y,
+									r: p.size / 2,
+									fill: "#5A3825",
+									stroke: "#5A3825",
+									strokeWidth: "0.5"
+								}, `glitter-dot-${p.id}`);
+							})
+						}),
+						/* @__PURE__ */ jsxs("g", {
+							className: "sbloom-pistil-group",
+							children: [/* @__PURE__ */ jsx("circle", {
+								cx: "50",
+								cy: "50",
+								r: "2.8",
+								fill: "none",
+								stroke: "#C9952E",
+								strokeWidth: "1.3"
+							}), /* @__PURE__ */ jsx("circle", {
+								cx: "50",
+								cy: "50",
+								r: "1.1",
+								fill: "#35251F"
+							})]
+						})
+					]
+				})
+			})]
+		})
+	});
+};
+//#endregion
 //#region src/root.tsx
 var root_exports = /* @__PURE__ */ __exportAll({
 	Layout: () => Layout,
@@ -512,6 +882,7 @@ function Layout({ children }) {
 			/* @__PURE__ */ jsx(Links, {})
 		] }), /* @__PURE__ */ jsxs("body", { children: [
 			/* @__PURE__ */ jsx(ScrollToTop, {}),
+			/* @__PURE__ */ jsx(BloomTransition, {}),
 			/* @__PURE__ */ jsxs("div", {
 				className: "app-layout",
 				children: [
@@ -636,12 +1007,34 @@ var ScrollReveal = ({ children, delay = 0, className = "", threshold = .1, style
 //#region src/components/home/DigitalGrowthSystem.tsx
 var DigitalGrowthSystem = () => {
 	const [hoveredStage, setHoveredStage] = useState(null);
+	const [inView, setInView] = useState(false);
+	const sectionRef = useRef(null);
+	useEffect(() => {
+		if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+			setInView(true);
+			return;
+		}
+		const observer = new IntersectionObserver(([entry]) => {
+			if (entry.isIntersecting) {
+				setInView(true);
+				if (sectionRef.current) observer.unobserve(sectionRef.current);
+			}
+		}, {
+			threshold: .15,
+			rootMargin: "0px 0px -40px 0px"
+		});
+		if (sectionRef.current) observer.observe(sectionRef.current);
+		return () => {
+			observer.disconnect();
+		};
+	}, []);
 	const stages = [
 		{
 			id: "build",
 			num: "01",
 			label: "BUILD",
 			headline: "Be easier to find.",
+			icon: Compass,
 			link: "/solutions#build"
 		},
 		{
@@ -649,6 +1042,7 @@ var DigitalGrowthSystem = () => {
 			num: "02",
 			label: "CREATE",
 			headline: "Be easier to understand.",
+			icon: File,
 			link: "/solutions#create"
 		},
 		{
@@ -656,6 +1050,7 @@ var DigitalGrowthSystem = () => {
 			num: "03",
 			label: "PROMOTE",
 			headline: "Be easier to reach the people who matter.",
+			icon: Megaphone,
 			link: "/solutions#promote"
 		},
 		{
@@ -663,10 +1058,12 @@ var DigitalGrowthSystem = () => {
 			num: "04",
 			label: "GROW",
 			headline: "Be easier to drive sustainable growth.",
+			icon: BarChart3,
 			link: "/solutions#grow"
 		}
 	];
 	return /* @__PURE__ */ jsx("section", {
+		ref: sectionRef,
 		className: "dgs-section section",
 		children: /* @__PURE__ */ jsxs("div", {
 			className: "container",
@@ -674,66 +1071,93 @@ var DigitalGrowthSystem = () => {
 				delay: 0,
 				children: /* @__PURE__ */ jsxs("div", {
 					className: "dgs-intro",
-					children: [/* @__PURE__ */ jsx("span", {
-						className: "dgs-label",
-						children: "WHAT SBLOOM CHANGES"
+					children: [/* @__PURE__ */ jsxs("div", {
+						className: "dgs-badge",
+						children: [
+							/* @__PURE__ */ jsx("span", {
+								className: "dgs-badge-line",
+								"aria-hidden": "true"
+							}),
+							/* @__PURE__ */ jsx("span", {
+								className: "dgs-label",
+								children: "WHAT SBLOOM CHANGES"
+							}),
+							/* @__PURE__ */ jsx("span", {
+								className: "dgs-badge-line",
+								"aria-hidden": "true"
+							})
+						]
 					}), /* @__PURE__ */ jsx("h2", {
 						className: "dgs-main-heading",
 						children: "We turn what you do well into something people can see, understand and act on."
 					})]
 				})
-			}), /* @__PURE__ */ jsxs("div", {
-				className: "dgs-stream-wrapper",
-				children: [/* @__PURE__ */ jsx("div", {
-					className: "dgs-stream-track",
-					"aria-hidden": "true"
-				}), /* @__PURE__ */ jsx("div", {
-					className: "dgs-stream-grid",
+			}), /* @__PURE__ */ jsx("div", {
+				className: `dgs-flow-wrapper ${inView ? "dgs-animated" : ""}`,
+				children: /* @__PURE__ */ jsx("div", {
+					className: "dgs-flow-grid",
 					children: stages.map((stage, idx) => {
 						const isHovered = hoveredStage === stage.id;
+						const IconComponent = stage.icon;
 						return /* @__PURE__ */ jsxs("div", {
-							className: `dgs-stream-item ${isHovered ? "active" : ""}`,
+							className: `dgs-stage-col ${isHovered ? "active" : ""}`,
 							onMouseEnter: () => setHoveredStage(stage.id),
 							onMouseLeave: () => setHoveredStage(null),
 							children: [
+								/* @__PURE__ */ jsx("span", {
+									className: "dgs-stage-num",
+									children: stage.num
+								}),
 								/* @__PURE__ */ jsxs("div", {
-									className: "dgs-stream-header",
-									children: [/* @__PURE__ */ jsx("span", {
-										className: "dgs-stream-num",
-										children: stage.num
-									}), /* @__PURE__ */ jsx("span", {
-										className: "dgs-stream-label",
-										children: stage.label
+									className: "dgs-marker-wrap",
+									children: [/* @__PURE__ */ jsx("div", {
+										className: "dgs-marker-circle",
+										children: /* @__PURE__ */ jsx(IconComponent, {
+											size: 24,
+											strokeWidth: 1.5,
+											className: "dgs-marker-icon"
+										})
+									}), idx < stages.length - 1 && /* @__PURE__ */ jsxs("div", {
+										className: "dgs-connector",
+										"aria-hidden": "true",
+										children: [
+											/* @__PURE__ */ jsx("span", { className: "dgs-connector-base" }),
+											/* @__PURE__ */ jsx("span", { className: "dgs-connector-fill" }),
+											/* @__PURE__ */ jsx("span", { className: "dgs-connector-point" })
+										]
 									})]
 								}),
-								/* @__PURE__ */ jsx("h3", {
-									className: "dgs-stream-headline",
+								/* @__PURE__ */ jsx("span", {
+									className: "dgs-stage-tick",
+									"aria-hidden": "true"
+								}),
+								/* @__PURE__ */ jsx("span", {
+									className: "dgs-stage-name",
+									children: stage.label
+								}),
+								/* @__PURE__ */ jsx("p", {
+									className: "dgs-stage-desc",
 									children: stage.headline
 								}),
 								/* @__PURE__ */ jsx("div", {
-									className: "dgs-stream-action",
-									children: /* @__PURE__ */ jsx(Link, {
+									className: "dgs-stage-action",
+									children: /* @__PURE__ */ jsxs(Link, {
 										to: stage.link,
 										className: "dgs-explore-btn",
 										"aria-label": `Explore ${stage.label}`,
 										onClick: (e) => {
 											e.stopPropagation();
 										},
-										children: /* @__PURE__ */ jsxs("span", { children: ["Explore ", stage.label.charAt(0) + stage.label.slice(1).toLowerCase()] })
+										children: [/* @__PURE__ */ jsxs("span", { children: ["Explore ", stage.label.charAt(0) + stage.label.slice(1).toLowerCase()] }), /* @__PURE__ */ jsx(ArrowRight, {
+											size: 13,
+											className: "dgs-btn-arrow"
+										})]
 									})
-								}),
-								idx < stages.length - 1 && /* @__PURE__ */ jsxs("div", {
-									className: "dgs-stream-arrow-divider",
-									"aria-hidden": "true",
-									children: [/* @__PURE__ */ jsx("span", { className: "dgs-divider-line" }), /* @__PURE__ */ jsx(ArrowRight, {
-										size: 14,
-										className: "dgs-divider-icon"
-									})]
 								})
 							]
 						}, stage.id);
 					})
-				})]
+				})
 			})]
 		})
 	});
@@ -2728,27 +3152,9 @@ var CLIENT_LOGOS = [
 //#endregion
 //#region src/components/home/ClientLogoMarquee.tsx
 var ClientLogoMarquee = ({ logos = CLIENT_LOGOS }) => {
-	const row1Logos = [
-		...logos,
-		...logos,
-		...logos
-	];
-	const row2Logos = [
-		...logos.slice(3),
-		...logos.slice(0, 3),
-		...logos.slice(3),
-		...logos.slice(0, 3),
-		...logos.slice(3),
-		...logos.slice(0, 3)
-	];
-	const row3Logos = [
-		...logos.slice(6),
-		...logos.slice(0, 6),
-		...logos.slice(6),
-		...logos.slice(0, 6),
-		...logos.slice(6),
-		...logos.slice(0, 6)
-	];
+	const row1Logos = [...logos];
+	const row2Logos = [...logos.slice(3), ...logos.slice(0, 3)];
+	const row3Logos = [...logos.slice(6), ...logos.slice(0, 6)];
 	const renderLogoCard = (logo, keySuffix) => /* @__PURE__ */ jsx("div", {
 		className: "logo-item",
 		title: logo.name,
@@ -3717,30 +4123,63 @@ var EducationPage = () => {
 			className: "industry-container",
 			children: [/* @__PURE__ */ jsx("section", {
 				className: "industry-hero-banner-section",
-				children: /* @__PURE__ */ jsxs(ScrollReveal, {
+				children: /* @__PURE__ */ jsx(ScrollReveal, {
 					delay: 0,
-					children: [/* @__PURE__ */ jsxs("div", {
-						className: "industry-hero-banner-wrap",
-						children: [/* @__PURE__ */ jsx("img", {
-							src: "/edu-hero-ai.png",
-							alt: "Help More Students Discover Your Institution with AI-Powered Growth",
-							className: "industry-hero-banner-img"
-						}), /* @__PURE__ */ jsx(Link, {
-							to: "/contact",
-							className: "industry-hero-banner-cta-overlay",
-							"aria-label": "Talk to S-BLOOM"
+					children: /* @__PURE__ */ jsxs("div", {
+						className: "edu-hero-hd-card",
+						children: [/* @__PURE__ */ jsxs("div", {
+							className: "edu-hero-hd-left",
+							children: [
+								/* @__PURE__ */ jsxs("div", {
+									className: "edu-hero-hd-eyebrow",
+									children: [/* @__PURE__ */ jsx("span", {
+										className: "edu-hero-hd-eyebrow-text",
+										children: "S-BLOOM — EDUCATION"
+									}), /* @__PURE__ */ jsx("span", { className: "edu-hero-hd-eyebrow-line" })]
+								}),
+								/* @__PURE__ */ jsxs("h1", {
+									className: "edu-hero-hd-title",
+									children: [
+										"Help More Students ",
+										/* @__PURE__ */ jsx("br", {}),
+										/* @__PURE__ */ jsx("span", {
+											className: "edu-hero-hd-title-gold",
+											children: "Discover Your Institution"
+										}),
+										" ",
+										/* @__PURE__ */ jsx("br", {}),
+										"with AI-Powered Growth."
+									]
+								}),
+								/* @__PURE__ */ jsx("p", {
+									className: "edu-hero-hd-desc",
+									children: "We help schools, colleges, coaching centres, and training institutes use AI-driven insights and digital marketing to increase visibility, attract the right students, and grow admissions."
+								}),
+								/* @__PURE__ */ jsx("div", {
+									className: "edu-hero-hd-actions",
+									children: /* @__PURE__ */ jsxs(Link, {
+										to: "/contact",
+										className: "edu-hero-hd-cta-btn",
+										children: [/* @__PURE__ */ jsx("span", { children: "Talk to S-BLOOM" }), /* @__PURE__ */ jsx(ArrowRight, {
+											size: 17,
+											strokeWidth: 2.4
+										})]
+									})
+								})
+							]
+						}), /* @__PURE__ */ jsx("div", {
+							className: "edu-hero-hd-right",
+							children: /* @__PURE__ */ jsx("img", {
+								src: "/edu-hero-visual-hd.jpg",
+								alt: "Education AI Growth Analytics, student inquiries and admissions insights",
+								className: "edu-hero-hd-img",
+								width: 1200,
+								height: 896,
+								loading: "eager",
+								decoding: "async"
+							})
 						})]
-					}), /* @__PURE__ */ jsx("div", {
-						className: "industry-hero-banner-mobile-cta",
-						children: /* @__PURE__ */ jsxs(Link, {
-							to: "/contact",
-							className: "industry-hero-cta-btn",
-							children: [/* @__PURE__ */ jsx("span", { children: "Talk to S-BLOOM" }), /* @__PURE__ */ jsx(ArrowRight, {
-								size: 17,
-								strokeWidth: 2.4
-							})]
-						})
-					})]
+					})
 				})
 			}), /* @__PURE__ */ jsx("section", {
 				className: "industry-services-section",
@@ -4456,8 +4895,29 @@ var SolutionsOverviewPage = ({ initialSection }) => {
 	const location = useLocation();
 	const [activeIdx, setActiveIdx] = useState(0);
 	const [direction, setDirection] = useState(1);
-	const [activeAdTab, setActiveAdTab] = useState("meta");
 	const activeStage = STAGES[activeIdx];
+	const [isPromoteMuted, setIsPromoteMuted] = useState(true);
+	const [isPromotePlaying, setIsPromotePlaying] = useState(true);
+	const promoteVideoRef = useRef(null);
+	const togglePromoteMute = (e) => {
+		e.stopPropagation();
+		if (promoteVideoRef.current) {
+			promoteVideoRef.current.muted = !promoteVideoRef.current.muted;
+			setIsPromoteMuted(promoteVideoRef.current.muted);
+		}
+	};
+	const togglePromotePlay = (e) => {
+		e.stopPropagation();
+		if (promoteVideoRef.current) {
+			if (promoteVideoRef.current.paused) {
+				promoteVideoRef.current.play().catch(() => {});
+				setIsPromotePlaying(true);
+			} else {
+				promoteVideoRef.current.pause();
+				setIsPromotePlaying(false);
+			}
+		}
+	};
 	const goToStage = (newIdx) => {
 		if (newIdx < 0 || newIdx >= STAGES.length) return;
 		setDirection(newIdx > activeIdx ? 1 : -1);
@@ -4999,254 +5459,30 @@ var SolutionsOverviewPage = ({ initialSection }) => {
 															})
 														]
 													}),
-													activeStage.id === "promote" && /* @__PURE__ */ jsxs("div", {
-														className: "sol-mock-promote",
-														children: [
-															/* @__PURE__ */ jsxs("div", {
-																className: "sol-promote-tabs",
-																children: [/* @__PURE__ */ jsxs("button", {
-																	type: "button",
-																	className: `sol-promote-tab-btn ${activeAdTab === "meta" ? "active" : ""}`,
-																	onClick: () => setActiveAdTab("meta"),
-																	children: [/* @__PURE__ */ jsx("div", {
-																		className: "sol-meta-icon-svg",
-																		children: /* @__PURE__ */ jsx("svg", {
-																			viewBox: "0 0 24 24",
-																			width: "18",
-																			height: "18",
-																			fill: "currentColor",
-																			children: /* @__PURE__ */ jsx("path", { d: "M12 7.2c-2.4 0-4.3 1.6-5.3 3.6-.9-1.9-2.7-3.4-4.8-3.6C.8 7.1-.1 8.1 0 9.2c.2 2.6 1.8 5.6 4.6 5.6 2.3 0 4.1-1.6 5.1-3.6.9 1.9 2.7 3.4 4.8 3.6 1.1.1 2-.9 1.9-2-.2-2.6-1.8-5.6-4.4-5.6zm-7.4 6c-1.7 0-2.8-2-2.9-3.8 0-.4.3-.7.7-.7 1.4 0 2.8 1.4 3.7 3.1-.4.9-.9 1.4-1.5 1.4zm10.8 0c-.6 0-1.1-.5-1.5-1.4.9-1.7 2.3-3.1 3.7-3.1.4 0 .7.3.7.7-.1 1.8-1.2 3.8-2.9 3.8z" })
-																		})
-																	}), /* @__PURE__ */ jsx("span", { children: "Meta Ads" })]
-																}), /* @__PURE__ */ jsxs("button", {
-																	type: "button",
-																	className: `sol-promote-tab-btn ${activeAdTab === "google" ? "active" : ""}`,
-																	onClick: () => setActiveAdTab("google"),
-																	children: [/* @__PURE__ */ jsx("div", {
-																		className: "sol-gads-icon-svg",
-																		children: /* @__PURE__ */ jsxs("svg", {
-																			viewBox: "0 0 24 24",
-																			width: "16",
-																			height: "16",
-																			children: [
-																				/* @__PURE__ */ jsx("polygon", {
-																					points: "4,20 10,4 14,4 8,20",
-																					fill: "#4285F4"
-																				}),
-																				/* @__PURE__ */ jsx("polygon", {
-																					points: "12,4 16,4 22,20 18,20",
-																					fill: "#FBBC05"
-																				}),
-																				/* @__PURE__ */ jsx("circle", {
-																					cx: "6",
-																					cy: "18",
-																					r: "3",
-																					fill: "#34A853"
-																				})
-																			]
-																		})
-																	}), /* @__PURE__ */ jsx("span", { children: "Google Ads" })]
-																})]
-															}),
-															/* @__PURE__ */ jsxs("div", {
-																className: "sol-perf-card",
-																children: [
-																	/* @__PURE__ */ jsxs("div", {
-																		className: "sol-perf-header",
-																		children: [/* @__PURE__ */ jsx("span", {
-																			className: "sol-perf-title",
-																			children: "Campaign Performance"
-																		}), /* @__PURE__ */ jsxs("div", {
-																			className: "sol-dropdown-badge",
-																			children: [/* @__PURE__ */ jsx("span", { children: "Last 30 Days" }), /* @__PURE__ */ jsx(ChevronDown, { size: 12 })]
-																		})]
-																	}),
-																	/* @__PURE__ */ jsxs("div", {
-																		className: "sol-stats-row",
-																		children: [
-																			/* @__PURE__ */ jsxs("div", {
-																				className: "sol-stat-cell",
-																				children: [
-																					/* @__PURE__ */ jsx("div", {
-																						className: "sol-stat-val",
-																						children: "12.4K"
-																					}),
-																					/* @__PURE__ */ jsx("div", {
-																						className: "sol-stat-lbl",
-																						children: "Reach"
-																					}),
-																					/* @__PURE__ */ jsx("div", {
-																						className: "sol-stat-delta",
-																						children: "↑ 28%"
-																					})
-																				]
-																			}),
-																			/* @__PURE__ */ jsxs("div", {
-																				className: "sol-stat-cell",
-																				children: [
-																					/* @__PURE__ */ jsx("div", {
-																						className: "sol-stat-val",
-																						children: "3.1K"
-																					}),
-																					/* @__PURE__ */ jsx("div", {
-																						className: "sol-stat-lbl",
-																						children: "Link Clicks"
-																					}),
-																					/* @__PURE__ */ jsx("div", {
-																						className: "sol-stat-delta",
-																						children: "↑ 32%"
-																					})
-																				]
-																			}),
-																			/* @__PURE__ */ jsxs("div", {
-																				className: "sol-stat-cell",
-																				children: [
-																					/* @__PURE__ */ jsx("div", {
-																						className: "sol-stat-val",
-																						children: "284"
-																					}),
-																					/* @__PURE__ */ jsx("div", {
-																						className: "sol-stat-lbl",
-																						children: "Leads"
-																					}),
-																					/* @__PURE__ */ jsx("div", {
-																						className: "sol-stat-delta",
-																						children: "↑ 45%"
-																					})
-																				]
-																			})
-																		]
-																	}),
-																	/* @__PURE__ */ jsx("div", {
-																		className: "sol-chart-area",
-																		children: /* @__PURE__ */ jsxs("svg", {
-																			viewBox: "0 0 320 80",
-																			className: "sol-smooth-chart",
-																			fill: "none",
-																			children: [
-																				/* @__PURE__ */ jsx("defs", { children: /* @__PURE__ */ jsxs("linearGradient", {
-																					id: "chartGradPromote",
-																					x1: "0",
-																					y1: "0",
-																					x2: "0",
-																					y2: "1",
-																					children: [/* @__PURE__ */ jsx("stop", {
-																						offset: "0%",
-																						stopColor: "#C9952E",
-																						stopOpacity: "0.35"
-																					}), /* @__PURE__ */ jsx("stop", {
-																						offset: "100%",
-																						stopColor: "#C9952E",
-																						stopOpacity: "0.0"
-																					})]
-																				}) }),
-																				/* @__PURE__ */ jsx("path", {
-																					d: "M 10,55 Q 55,62 95,45 T 180,50 T 250,30 T 310,14 L 310,80 L 10,80 Z",
-																					fill: "url(#chartGradPromote)"
-																				}),
-																				/* @__PURE__ */ jsx("path", {
-																					d: "M 10,55 Q 55,62 95,45 T 180,50 T 250,30 T 310,14",
-																					stroke: "#C9952E",
-																					strokeWidth: "2.5",
-																					strokeLinecap: "round"
-																				}),
-																				/* @__PURE__ */ jsx("circle", {
-																					cx: "10",
-																					cy: "55",
-																					r: "3.5",
-																					fill: "#C9952E"
-																				}),
-																				/* @__PURE__ */ jsx("circle", {
-																					cx: "95",
-																					cy: "45",
-																					r: "3.5",
-																					fill: "#C9952E"
-																				}),
-																				/* @__PURE__ */ jsx("circle", {
-																					cx: "180",
-																					cy: "50",
-																					r: "3.5",
-																					fill: "#C9952E"
-																				}),
-																				/* @__PURE__ */ jsx("circle", {
-																					cx: "250",
-																					cy: "30",
-																					r: "3.5",
-																					fill: "#C9952E"
-																				}),
-																				/* @__PURE__ */ jsx("circle", {
-																					cx: "310",
-																					cy: "14",
-																					r: "4.5",
-																					fill: "#C9952E",
-																					stroke: "#FFFCF7",
-																					strokeWidth: "2"
-																				})
-																			]
-																		})
-																	})
-																]
-															}),
-															/* @__PURE__ */ jsxs("div", {
-																className: "sol-audience-card",
-																children: [/* @__PURE__ */ jsx("div", {
-																	className: "sol-aud-title",
-																	children: "Audience"
-																}), /* @__PURE__ */ jsxs("div", {
-																	className: "sol-aud-rows",
-																	children: [
-																		/* @__PURE__ */ jsxs("div", {
-																			className: "sol-aud-row",
-																			children: [/* @__PURE__ */ jsxs("div", {
-																				className: "sol-aud-lbl",
-																				children: [/* @__PURE__ */ jsx(MapPin, {
-																					size: 13,
-																					className: "sol-aud-icon"
-																				}), /* @__PURE__ */ jsx("span", { children: "Location" })]
-																			}), /* @__PURE__ */ jsx("div", {
-																				className: "sol-aud-bar-track",
-																				children: /* @__PURE__ */ jsx("div", {
-																					className: "sol-aud-bar-fill",
-																					style: { width: "70%" }
-																				})
-																			})]
-																		}),
-																		/* @__PURE__ */ jsxs("div", {
-																			className: "sol-aud-row",
-																			children: [/* @__PURE__ */ jsxs("div", {
-																				className: "sol-aud-lbl",
-																				children: [/* @__PURE__ */ jsx(User, {
-																					size: 13,
-																					className: "sol-aud-icon"
-																				}), /* @__PURE__ */ jsx("span", { children: "Age Group" })]
-																			}), /* @__PURE__ */ jsx("div", {
-																				className: "sol-aud-bar-track",
-																				children: /* @__PURE__ */ jsx("div", {
-																					className: "sol-aud-bar-fill",
-																					style: { width: "55%" }
-																				})
-																			})]
-																		}),
-																		/* @__PURE__ */ jsxs("div", {
-																			className: "sol-aud-row",
-																			children: [/* @__PURE__ */ jsxs("div", {
-																				className: "sol-aud-lbl",
-																				children: [/* @__PURE__ */ jsx(Target, {
-																					size: 13,
-																					className: "sol-aud-icon"
-																				}), /* @__PURE__ */ jsx("span", { children: "Interests" })]
-																			}), /* @__PURE__ */ jsx("div", {
-																				className: "sol-aud-bar-track",
-																				children: /* @__PURE__ */ jsx("div", {
-																					className: "sol-aud-bar-fill",
-																					style: { width: "42%" }
-																				})
-																			})]
-																		})
-																	]
-																})]
-															})
-														]
+													activeStage.id === "promote" && /* @__PURE__ */ jsx("div", {
+														className: "sol-mock-promote sol-video-only-view",
+														children: /* @__PURE__ */ jsxs("div", {
+															className: "sol-promote-video-box",
+															onClick: togglePromotePlay,
+															title: isPromotePlaying ? "Click to pause" : "Click to play",
+															style: { cursor: "pointer" },
+															children: [/* @__PURE__ */ jsx("video", {
+																ref: promoteVideoRef,
+																src: "/IMG_3694.mp4",
+																autoPlay: true,
+																muted: isPromoteMuted,
+																loop: true,
+																playsInline: true,
+																className: "sol-promote-video-element"
+															}), /* @__PURE__ */ jsx("button", {
+																type: "button",
+																onClick: togglePromoteMute,
+																className: "sol-video-sound-floating-btn",
+																"aria-label": isPromoteMuted ? "Unmute audio" : "Mute audio",
+																title: isPromoteMuted ? "Unmute" : "Mute",
+																children: isPromoteMuted ? /* @__PURE__ */ jsx(VolumeX, { size: 15 }) : /* @__PURE__ */ jsx(Volume2, { size: 15 })
+															})]
+														})
 													}),
 													activeStage.id === "grow" && /* @__PURE__ */ jsxs("div", {
 														className: "sol-mock-grow",
@@ -6369,38 +6605,43 @@ var CreativeOrbit = () => {
 			/* @__PURE__ */ jsx("div", { className: "co-radial-glow" }),
 			/* @__PURE__ */ jsxs("div", {
 				className: "co-outer-ring",
-				children: [/* @__PURE__ */ jsx("div", {
-					className: "co-node co-node-top",
-					children: /* @__PURE__ */ jsxs("div", {
-						className: "co-node-content co-counter-cw-slow",
-						children: [/* @__PURE__ */ jsx("div", {
-							className: "co-icon-box",
-							children: /* @__PURE__ */ jsx(PenTool, { size: 20 })
-						}), /* @__PURE__ */ jsx("span", {
-							className: "co-label",
-							children: "DESIGN"
-						})]
-					})
-				}), /* @__PURE__ */ jsx("div", {
-					className: "co-node co-node-bottom",
-					children: /* @__PURE__ */ jsxs("div", {
-						className: "co-node-content co-counter-cw-slow",
-						children: [/* @__PURE__ */ jsx("div", {
-							className: "co-icon-box",
-							children: /* @__PURE__ */ jsx(Film, { size: 20 })
-						}), /* @__PURE__ */ jsx("span", {
-							className: "co-label",
-							children: "VIDEO"
-						})]
-					})
-				})]
+				children: [
+					/* @__PURE__ */ jsx("div", {
+						className: "co-node co-node-design",
+						children: /* @__PURE__ */ jsxs("div", {
+							className: "co-node-content",
+							children: [/* @__PURE__ */ jsx("div", {
+								className: "co-icon-box",
+								children: /* @__PURE__ */ jsx(PenTool, { size: 20 })
+							}), /* @__PURE__ */ jsx("span", {
+								className: "co-label",
+								children: "DESIGN"
+							})]
+						})
+					}),
+					/* @__PURE__ */ jsx("div", {
+						className: "co-node co-node-video",
+						children: /* @__PURE__ */ jsxs("div", {
+							className: "co-node-content",
+							children: [/* @__PURE__ */ jsx("div", {
+								className: "co-icon-box",
+								children: /* @__PURE__ */ jsx(Film, { size: 20 })
+							}), /* @__PURE__ */ jsx("span", {
+								className: "co-label",
+								children: "VIDEO"
+							})]
+						})
+					}),
+					/* @__PURE__ */ jsx("div", { className: "co-bead co-bead-top-right" }),
+					/* @__PURE__ */ jsx("div", { className: "co-bead co-bead-bottom" })
+				]
 			}),
 			/* @__PURE__ */ jsxs("div", {
 				className: "co-inner-ring",
 				children: [/* @__PURE__ */ jsx("div", {
-					className: "co-node co-node-left",
+					className: "co-node co-node-content-pos",
 					children: /* @__PURE__ */ jsxs("div", {
-						className: "co-node-content co-counter-ccw-fast",
+						className: "co-node-content",
 						children: [/* @__PURE__ */ jsx("div", {
 							className: "co-icon-box",
 							children: /* @__PURE__ */ jsx(FileText, { size: 20 })
@@ -6410,9 +6651,9 @@ var CreativeOrbit = () => {
 						})]
 					})
 				}), /* @__PURE__ */ jsx("div", {
-					className: "co-node co-node-right",
+					className: "co-node co-node-digital-pos",
 					children: /* @__PURE__ */ jsxs("div", {
-						className: "co-node-content co-counter-ccw-fast",
+						className: "co-node-content",
 						children: [/* @__PURE__ */ jsx("div", {
 							className: "co-icon-box",
 							children: /* @__PURE__ */ jsx(MonitorSmartphone, { size: 20 })
@@ -6433,6 +6674,57 @@ var CreativeOrbit = () => {
 		]
 	});
 };
+//#endregion
+//#region \0@oxc-project+runtime@0.150.0/helpers/esm/asyncToGenerator.js
+function asyncGeneratorStep(n, t, e, r, o, a, c) {
+	try {
+		var i = n[a](c), u = i.value;
+	} catch (n) {
+		e(n);
+		return;
+	}
+	i.done ? t(u) : Promise.resolve(u).then(r, o);
+}
+function _asyncToGenerator(n) {
+	return function() {
+		var t = this, e = arguments;
+		return new Promise(function(r, o) {
+			var a = n.apply(t, e);
+			function _next(n) {
+				asyncGeneratorStep(a, r, o, _next, _throw, "next", n);
+			}
+			function _throw(n) {
+				asyncGeneratorStep(a, r, o, _next, _throw, "throw", n);
+			}
+			_next(void 0);
+		});
+	};
+}
+//#endregion
+//#region src/config/forms.ts
+var FORM_ENDPOINTS = {
+	CREATIVE_WORKSPACE: "https://script.google.com/macros/s/AKfycbw5_mDENuthcse6rvt1jyXbyIC8xxejJLk0WDPIemxzqRktW-wo4jdhXejR5riHCW61/exec",
+	CONTACT_LEADS: "https://script.google.com/macros/s/AKfycbyG_jBidpk5Qw25vlqU0P3Cz_64KwXRRECCQ5T-zVWLkiHfmM_M4RCUptaPNUv4AB7rKw/exec"
+};
+/**
+* Submits form data payload to Google Apps Script Web App.
+* Uses 'no-cors' mode with text/plain content type to ensure cross-origin 
+* requests bypass preflight (OPTIONS) blockers and reliably reach Google Sheets.
+*/
+function submitToGoogleSheet(_x, _x2) {
+	return _submitToGoogleSheet.apply(this, arguments);
+}
+function _submitToGoogleSheet() {
+	_submitToGoogleSheet = _asyncToGenerator(function* (url, payload) {
+		yield fetch(url, {
+			method: "POST",
+			mode: "no-cors",
+			headers: { "Content-Type": "text/plain;charset=utf-8" },
+			body: JSON.stringify(payload)
+		});
+	});
+	return _submitToGoogleSheet.apply(this, arguments);
+}
 //#endregion
 //#region src/pages/CreativeWorkspacePage.tsx
 var VideoEditorIcon = () => /* @__PURE__ */ jsxs("svg", {
@@ -6576,6 +6868,7 @@ var CreativeWorkspacePage = () => {
 	const [formHighlight, setFormHighlight] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [submitted, setSubmitted] = useState(false);
+	const [errorMessage, setErrorMessage] = useState(null);
 	const [formData, setFormData] = useState({
 		fullName: "",
 		email: "",
@@ -6605,16 +6898,34 @@ var CreativeWorkspacePage = () => {
 		const { name, value } = e.target;
 		setFormData((prev) => _objectSpread2(_objectSpread2({}, prev), {}, { [name]: value }));
 	};
-	const handleSubmit = (e) => {
-		e.preventDefault();
-		setIsSubmitting(true);
-		setTimeout(() => {
-			setIsSubmitting(false);
-			setSubmitted(true);
-		}, 600);
-	};
+	const handleSubmit = function() {
+		var _ref = _asyncToGenerator(function* (e) {
+			e.preventDefault();
+			setIsSubmitting(true);
+			setErrorMessage(null);
+			try {
+				yield submitToGoogleSheet(FORM_ENDPOINTS.CREATIVE_WORKSPACE, {
+					fullName: formData.fullName,
+					email: formData.email,
+					phone: formData.phone,
+					role: formData.role,
+					portfolioUrl: formData.portfolioUrl
+				});
+				setSubmitted(true);
+			} catch (err) {
+				console.error("Failed to submit creative application:", err);
+				setErrorMessage("Unable to submit your application right now. Please check your internet connection or try again.");
+			} finally {
+				setIsSubmitting(false);
+			}
+		});
+		return function handleSubmit(_x) {
+			return _ref.apply(this, arguments);
+		};
+	}();
 	const handleResetForm = () => {
 		setSubmitted(false);
+		setErrorMessage(null);
 		setFormData({
 			fullName: "",
 			email: "",
@@ -6950,186 +7261,194 @@ var CreativeWorkspacePage = () => {
 							}) : /* @__PURE__ */ jsxs("form", {
 								className: "cw-apply-form",
 								onSubmit: handleSubmit,
-								children: [/* @__PURE__ */ jsxs("div", {
-									className: "cw-apply-form-grid",
-									children: [
-										/* @__PURE__ */ jsxs("div", {
-											className: "cw-form-group",
-											children: [/* @__PURE__ */ jsxs("label", {
-												htmlFor: "cw-fullName",
-												className: "cw-form-label",
-												children: ["Full Name ", /* @__PURE__ */ jsx("span", {
-													className: "cw-req-star",
-													children: "*"
+								children: [
+									/* @__PURE__ */ jsxs("div", {
+										className: "cw-apply-form-grid",
+										children: [
+											/* @__PURE__ */ jsxs("div", {
+												className: "cw-form-group",
+												children: [/* @__PURE__ */ jsxs("label", {
+													htmlFor: "cw-fullName",
+													className: "cw-form-label",
+													children: ["Full Name ", /* @__PURE__ */ jsx("span", {
+														className: "cw-req-star",
+														children: "*"
+													})]
+												}), /* @__PURE__ */ jsxs("div", {
+													className: "cw-input-wrap",
+													children: [/* @__PURE__ */ jsx(User, {
+														size: 15,
+														strokeWidth: 1.8,
+														className: "cw-input-icon"
+													}), /* @__PURE__ */ jsx("input", {
+														type: "text",
+														id: "cw-fullName",
+														name: "fullName",
+														required: true,
+														placeholder: "Your full name",
+														className: "cw-input",
+														value: formData.fullName,
+														onChange: handleInputChange
+													})]
 												})]
-											}), /* @__PURE__ */ jsxs("div", {
-												className: "cw-input-wrap",
-												children: [/* @__PURE__ */ jsx(User, {
-													size: 15,
-													strokeWidth: 1.8,
-													className: "cw-input-icon"
-												}), /* @__PURE__ */ jsx("input", {
-													type: "text",
-													id: "cw-fullName",
-													name: "fullName",
-													required: true,
-													placeholder: "Your full name",
-													className: "cw-input",
-													value: formData.fullName,
-													onChange: handleInputChange
+											}),
+											/* @__PURE__ */ jsxs("div", {
+												className: "cw-form-group",
+												children: [/* @__PURE__ */ jsxs("label", {
+													htmlFor: "cw-email",
+													className: "cw-form-label",
+													children: ["Email Address ", /* @__PURE__ */ jsx("span", {
+														className: "cw-req-star",
+														children: "*"
+													})]
+												}), /* @__PURE__ */ jsxs("div", {
+													className: "cw-input-wrap",
+													children: [/* @__PURE__ */ jsx(Mail, {
+														size: 15,
+														strokeWidth: 1.8,
+														className: "cw-input-icon"
+													}), /* @__PURE__ */ jsx("input", {
+														type: "email",
+														id: "cw-email",
+														name: "email",
+														required: true,
+														placeholder: "you@domain.com",
+														className: "cw-input",
+														value: formData.email,
+														onChange: handleInputChange
+													})]
 												})]
-											})]
-										}),
-										/* @__PURE__ */ jsxs("div", {
-											className: "cw-form-group",
-											children: [/* @__PURE__ */ jsxs("label", {
-												htmlFor: "cw-email",
-												className: "cw-form-label",
-												children: ["Email Address ", /* @__PURE__ */ jsx("span", {
-													className: "cw-req-star",
-													children: "*"
+											}),
+											/* @__PURE__ */ jsxs("div", {
+												className: "cw-form-group",
+												children: [/* @__PURE__ */ jsxs("label", {
+													htmlFor: "cw-phone",
+													className: "cw-form-label",
+													children: ["Phone / WhatsApp ", /* @__PURE__ */ jsx("span", {
+														className: "cw-req-star",
+														children: "*"
+													})]
+												}), /* @__PURE__ */ jsxs("div", {
+													className: "cw-input-wrap",
+													children: [/* @__PURE__ */ jsx(Phone, {
+														size: 15,
+														strokeWidth: 1.8,
+														className: "cw-input-icon"
+													}), /* @__PURE__ */ jsx("input", {
+														type: "tel",
+														id: "cw-phone",
+														name: "phone",
+														required: true,
+														placeholder: "+91 98765 43210",
+														className: "cw-input",
+														value: formData.phone,
+														onChange: handleInputChange
+													})]
 												})]
-											}), /* @__PURE__ */ jsxs("div", {
-												className: "cw-input-wrap",
-												children: [/* @__PURE__ */ jsx(Mail, {
-													size: 15,
-													strokeWidth: 1.8,
-													className: "cw-input-icon"
-												}), /* @__PURE__ */ jsx("input", {
-													type: "email",
-													id: "cw-email",
-													name: "email",
-													required: true,
-													placeholder: "you@domain.com",
-													className: "cw-input",
-													value: formData.email,
-													onChange: handleInputChange
+											}),
+											/* @__PURE__ */ jsxs("div", {
+												className: "cw-form-group",
+												children: [/* @__PURE__ */ jsxs("label", {
+													htmlFor: "cw-role",
+													className: "cw-form-label",
+													children: ["Creative Role ", /* @__PURE__ */ jsx("span", {
+														className: "cw-req-star",
+														children: "*"
+													})]
+												}), /* @__PURE__ */ jsxs("div", {
+													className: "cw-input-wrap",
+													children: [/* @__PURE__ */ jsx(Briefcase, {
+														size: 15,
+														strokeWidth: 1.8,
+														className: "cw-input-icon"
+													}), /* @__PURE__ */ jsxs("select", {
+														id: "cw-role",
+														name: "role",
+														required: true,
+														className: "cw-select",
+														value: formData.role,
+														onChange: handleInputChange,
+														children: [
+															/* @__PURE__ */ jsx("option", {
+																value: "",
+																children: "Select your discipline..."
+															}),
+															/* @__PURE__ */ jsx("option", {
+																value: "Video Editors",
+																children: "Video Editors"
+															}),
+															/* @__PURE__ */ jsx("option", {
+																value: "Content Writers",
+																children: "Content Writers"
+															}),
+															/* @__PURE__ */ jsx("option", {
+																value: "Web Developers",
+																children: "Web Developers"
+															}),
+															/* @__PURE__ */ jsx("option", {
+																value: "SEO Specialists",
+																children: "SEO Specialists"
+															}),
+															/* @__PURE__ */ jsx("option", {
+																value: "Social Media Managers",
+																children: "Social Media Managers"
+															}),
+															/* @__PURE__ */ jsx("option", {
+																value: "Graphic Designers",
+																children: "Graphic Designers"
+															}),
+															/* @__PURE__ */ jsx("option", {
+																value: "Other Creative Role",
+																children: "Other Creative Role"
+															})
+														]
+													})]
 												})]
-											})]
-										}),
-										/* @__PURE__ */ jsxs("div", {
-											className: "cw-form-group",
-											children: [/* @__PURE__ */ jsxs("label", {
-												htmlFor: "cw-phone",
-												className: "cw-form-label",
-												children: ["Phone / WhatsApp ", /* @__PURE__ */ jsx("span", {
-													className: "cw-req-star",
-													children: "*"
+											}),
+											/* @__PURE__ */ jsxs("div", {
+												className: "cw-form-group cw-apply-full-width",
+												children: [/* @__PURE__ */ jsxs("label", {
+													htmlFor: "cw-portfolioUrl",
+													className: "cw-form-label",
+													children: ["Portfolio / Reel Link ", /* @__PURE__ */ jsx("span", {
+														className: "cw-req-star",
+														children: "*"
+													})]
+												}), /* @__PURE__ */ jsxs("div", {
+													className: "cw-input-wrap",
+													children: [/* @__PURE__ */ jsx(Link2, {
+														size: 15,
+														strokeWidth: 1.8,
+														className: "cw-input-icon"
+													}), /* @__PURE__ */ jsx("input", {
+														type: "url",
+														id: "cw-portfolioUrl",
+														name: "portfolioUrl",
+														required: true,
+														placeholder: "Behance, Google Drive, YouTube, Vimeo, Instagram, or portfolio URL",
+														className: "cw-input",
+														value: formData.portfolioUrl,
+														onChange: handleInputChange
+													})]
 												})]
-											}), /* @__PURE__ */ jsxs("div", {
-												className: "cw-input-wrap",
-												children: [/* @__PURE__ */ jsx(Phone, {
-													size: 15,
-													strokeWidth: 1.8,
-													className: "cw-input-icon"
-												}), /* @__PURE__ */ jsx("input", {
-													type: "tel",
-													id: "cw-phone",
-													name: "phone",
-													required: true,
-													placeholder: "+91 98765 43210",
-													className: "cw-input",
-													value: formData.phone,
-													onChange: handleInputChange
-												})]
-											})]
-										}),
-										/* @__PURE__ */ jsxs("div", {
-											className: "cw-form-group",
-											children: [/* @__PURE__ */ jsxs("label", {
-												htmlFor: "cw-role",
-												className: "cw-form-label",
-												children: ["Creative Role ", /* @__PURE__ */ jsx("span", {
-													className: "cw-req-star",
-													children: "*"
-												})]
-											}), /* @__PURE__ */ jsxs("div", {
-												className: "cw-input-wrap",
-												children: [/* @__PURE__ */ jsx(Briefcase, {
-													size: 15,
-													strokeWidth: 1.8,
-													className: "cw-input-icon"
-												}), /* @__PURE__ */ jsxs("select", {
-													id: "cw-role",
-													name: "role",
-													required: true,
-													className: "cw-select",
-													value: formData.role,
-													onChange: handleInputChange,
-													children: [
-														/* @__PURE__ */ jsx("option", {
-															value: "",
-															children: "Select your discipline..."
-														}),
-														/* @__PURE__ */ jsx("option", {
-															value: "Video Editors",
-															children: "Video Editors"
-														}),
-														/* @__PURE__ */ jsx("option", {
-															value: "Content Writers",
-															children: "Content Writers"
-														}),
-														/* @__PURE__ */ jsx("option", {
-															value: "Web Developers",
-															children: "Web Developers"
-														}),
-														/* @__PURE__ */ jsx("option", {
-															value: "SEO Specialists",
-															children: "SEO Specialists"
-														}),
-														/* @__PURE__ */ jsx("option", {
-															value: "Social Media Managers",
-															children: "Social Media Managers"
-														}),
-														/* @__PURE__ */ jsx("option", {
-															value: "Graphic Designers",
-															children: "Graphic Designers"
-														}),
-														/* @__PURE__ */ jsx("option", {
-															value: "Other Creative Role",
-															children: "Other Creative Role"
-														})
-													]
-												})]
-											})]
-										}),
-										/* @__PURE__ */ jsxs("div", {
-											className: "cw-form-group cw-apply-full-width",
-											children: [/* @__PURE__ */ jsxs("label", {
-												htmlFor: "cw-portfolioUrl",
-												className: "cw-form-label",
-												children: ["Portfolio / Reel Link ", /* @__PURE__ */ jsx("span", {
-													className: "cw-req-star",
-													children: "*"
-												})]
-											}), /* @__PURE__ */ jsxs("div", {
-												className: "cw-input-wrap",
-												children: [/* @__PURE__ */ jsx(Link2, {
-													size: 15,
-													strokeWidth: 1.8,
-													className: "cw-input-icon"
-												}), /* @__PURE__ */ jsx("input", {
-													type: "url",
-													id: "cw-portfolioUrl",
-													name: "portfolioUrl",
-													required: true,
-													placeholder: "Behance, Google Drive, YouTube, Vimeo, Instagram, or portfolio URL",
-													className: "cw-input",
-													value: formData.portfolioUrl,
-													onChange: handleInputChange
-												})]
-											})]
-										})
-									]
-								}), /* @__PURE__ */ jsxs("button", {
-									type: "submit",
-									className: "cw-apply-submit-btn",
-									disabled: isSubmitting,
-									children: [/* @__PURE__ */ jsx("span", { children: isSubmitting ? "Submitting Application..." : "Submit Application" }), /* @__PURE__ */ jsx(ArrowRight, {
-										size: 16,
-										strokeWidth: 2.4
-									})]
-								})]
+											})
+										]
+									}),
+									errorMessage && /* @__PURE__ */ jsxs("div", {
+										className: "cw-apply-error-banner",
+										role: "alert",
+										children: [/* @__PURE__ */ jsx(AlertCircle, { size: 16 }), /* @__PURE__ */ jsx("span", { children: errorMessage })]
+									}),
+									/* @__PURE__ */ jsxs("button", {
+										type: "submit",
+										className: "cw-apply-submit-btn",
+										disabled: isSubmitting,
+										children: [/* @__PURE__ */ jsx("span", { children: isSubmitting ? "Submitting Application..." : "Submit Application" }), /* @__PURE__ */ jsx(ArrowRight, {
+											size: 16,
+											strokeWidth: 2.4
+										})]
+									})
+								]
 							})]
 						})
 					})
@@ -7186,20 +7505,40 @@ var ContactPage = () => {
 	});
 	const [submitted, setSubmitted] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [errorMessage, setErrorMessage] = useState(null);
 	const handleChange = (e) => {
 		const { name, value } = e.target;
 		setFormData((prev) => _objectSpread2(_objectSpread2({}, prev), {}, { [name]: value }));
 	};
-	const handleSubmit = (e) => {
-		e.preventDefault();
-		setIsSubmitting(true);
-		setTimeout(() => {
-			setIsSubmitting(false);
-			setSubmitted(true);
-		}, 600);
-	};
+	const handleSubmit = function() {
+		var _ref = _asyncToGenerator(function* (e) {
+			e.preventDefault();
+			setIsSubmitting(true);
+			setErrorMessage(null);
+			try {
+				yield submitToGoogleSheet(FORM_ENDPOINTS.CONTACT_LEADS, {
+					fullName: formData.fullName,
+					organization: formData.organization,
+					email: formData.email,
+					phone: formData.phone,
+					industry: formData.industry,
+					improve: formData.improve
+				});
+				setSubmitted(true);
+			} catch (err) {
+				console.error("Failed to submit contact inquiry:", err);
+				setErrorMessage("Unable to submit your details right now. Please check your internet connection or try again.");
+			} finally {
+				setIsSubmitting(false);
+			}
+		});
+		return function handleSubmit(_x) {
+			return _ref.apply(this, arguments);
+		};
+	}();
 	const handleReset = () => {
 		setSubmitted(false);
+		setErrorMessage(null);
 		setFormData({
 			fullName: "",
 			organization: "",
@@ -7212,13 +7551,370 @@ var ContactPage = () => {
 	return /* @__PURE__ */ jsxs("div", {
 		className: "contact-page-wrapper",
 		children: [/* @__PURE__ */ jsxs("div", {
-			className: "contact-bg-backdrop",
+			className: "contact-horizon-bg",
 			"aria-hidden": "true",
-			children: [/* @__PURE__ */ jsx("img", {
-				src: "/contact-desk-bg.jpg",
-				alt: "sBLOOM Workspace",
-				className: "contact-bg-image"
-			}), /* @__PURE__ */ jsx("div", { className: "contact-bg-light-tint" })]
+			children: [/* @__PURE__ */ jsx("div", { className: "contact-ambient-radial" }), /* @__PURE__ */ jsxs("svg", {
+				className: "contact-trails-svg",
+				viewBox: "0 0 1600 900",
+				preserveAspectRatio: "xMidYMid slice",
+				fill: "none",
+				xmlns: "http://www.w3.org/2000/svg",
+				children: [
+					/* @__PURE__ */ jsxs("defs", { children: [
+						/* @__PURE__ */ jsxs("linearGradient", {
+							id: "silkDuneGrad1",
+							x1: "0%",
+							y1: "0%",
+							x2: "0%",
+							y2: "100%",
+							children: [
+								/* @__PURE__ */ jsx("stop", {
+									offset: "0%",
+									stopColor: "#F6EADB",
+									stopOpacity: "0.55"
+								}),
+								/* @__PURE__ */ jsx("stop", {
+									offset: "50%",
+									stopColor: "#EDD8C0",
+									stopOpacity: "0.32"
+								}),
+								/* @__PURE__ */ jsx("stop", {
+									offset: "100%",
+									stopColor: "#FBF6EE",
+									stopOpacity: "0.06"
+								})
+							]
+						}),
+						/* @__PURE__ */ jsxs("linearGradient", {
+							id: "silkDuneGrad2",
+							x1: "0%",
+							y1: "0%",
+							x2: "0%",
+							y2: "100%",
+							children: [
+								/* @__PURE__ */ jsx("stop", {
+									offset: "0%",
+									stopColor: "#F2DCBF",
+									stopOpacity: "0.48"
+								}),
+								/* @__PURE__ */ jsx("stop", {
+									offset: "60%",
+									stopColor: "#E8CCAA",
+									stopOpacity: "0.22"
+								}),
+								/* @__PURE__ */ jsx("stop", {
+									offset: "100%",
+									stopColor: "#FBF6EE",
+									stopOpacity: "0.03"
+								})
+							]
+						}),
+						/* @__PURE__ */ jsxs("radialGradient", {
+							id: "diffusedChampagneGlow",
+							cx: "50%",
+							cy: "50%",
+							r: "50%",
+							children: [
+								/* @__PURE__ */ jsx("stop", {
+									offset: "0%",
+									stopColor: "#FDEBC9",
+									stopOpacity: "0.42"
+								}),
+								/* @__PURE__ */ jsx("stop", {
+									offset: "40%",
+									stopColor: "#F5D79E",
+									stopOpacity: "0.22"
+								}),
+								/* @__PURE__ */ jsx("stop", {
+									offset: "75%",
+									stopColor: "#D6A13A",
+									stopOpacity: "0.08"
+								}),
+								/* @__PURE__ */ jsx("stop", {
+									offset: "100%",
+									stopColor: "#D6A13A",
+									stopOpacity: "0"
+								})
+							]
+						}),
+						/* @__PURE__ */ jsxs("linearGradient", {
+							id: "delicateWhiteGrad1",
+							x1: "0%",
+							y1: "20%",
+							x2: "100%",
+							y2: "30%",
+							children: [
+								/* @__PURE__ */ jsx("stop", {
+									offset: "0%",
+									stopColor: "#FFFFFF",
+									stopOpacity: "0.10"
+								}),
+								/* @__PURE__ */ jsx("stop", {
+									offset: "25%",
+									stopColor: "#FFFFFF",
+									stopOpacity: "0.60"
+								}),
+								/* @__PURE__ */ jsx("stop", {
+									offset: "50%",
+									stopColor: "#FFFDF7",
+									stopOpacity: "0.82"
+								}),
+								/* @__PURE__ */ jsx("stop", {
+									offset: "75%",
+									stopColor: "#FFFFFF",
+									stopOpacity: "0.65"
+								}),
+								/* @__PURE__ */ jsx("stop", {
+									offset: "100%",
+									stopColor: "#FFFFFF",
+									stopOpacity: "0.15"
+								})
+							]
+						}),
+						/* @__PURE__ */ jsxs("linearGradient", {
+							id: "delicateWhiteGrad2",
+							x1: "0%",
+							y1: "40%",
+							x2: "100%",
+							y2: "50%",
+							children: [
+								/* @__PURE__ */ jsx("stop", {
+									offset: "0%",
+									stopColor: "#FFFFFF",
+									stopOpacity: "0.08"
+								}),
+								/* @__PURE__ */ jsx("stop", {
+									offset: "25%",
+									stopColor: "#FFFFFF",
+									stopOpacity: "0.45"
+								}),
+								/* @__PURE__ */ jsx("stop", {
+									offset: "50%",
+									stopColor: "#FFFDF5",
+									stopOpacity: "0.75"
+								}),
+								/* @__PURE__ */ jsx("stop", {
+									offset: "75%",
+									stopColor: "#FFFFFF",
+									stopOpacity: "0.50"
+								}),
+								/* @__PURE__ */ jsx("stop", {
+									offset: "100%",
+									stopColor: "#FFFFFF",
+									stopOpacity: "0.10"
+								})
+							]
+						}),
+						/* @__PURE__ */ jsxs("linearGradient", {
+							id: "delicateWhiteGrad3",
+							x1: "0%",
+							y1: "70%",
+							x2: "100%",
+							y2: "70%",
+							children: [
+								/* @__PURE__ */ jsx("stop", {
+									offset: "0%",
+									stopColor: "#FFFFFF",
+									stopOpacity: "0.08"
+								}),
+								/* @__PURE__ */ jsx("stop", {
+									offset: "30%",
+									stopColor: "#FFFFFF",
+									stopOpacity: "0.45"
+								}),
+								/* @__PURE__ */ jsx("stop", {
+									offset: "50%",
+									stopColor: "#FFFDF0",
+									stopOpacity: "0.70"
+								}),
+								/* @__PURE__ */ jsx("stop", {
+									offset: "70%",
+									stopColor: "#FFFFFF",
+									stopOpacity: "0.45"
+								}),
+								/* @__PURE__ */ jsx("stop", {
+									offset: "100%",
+									stopColor: "#FFFFFF",
+									stopOpacity: "0.08"
+								})
+							]
+						}),
+						/* @__PURE__ */ jsxs("linearGradient", {
+							id: "subtleGoldGrad1",
+							x1: "0%",
+							y1: "30%",
+							x2: "100%",
+							y2: "40%",
+							children: [
+								/* @__PURE__ */ jsx("stop", {
+									offset: "0%",
+									stopColor: "#D6A13A",
+									stopOpacity: "0.08"
+								}),
+								/* @__PURE__ */ jsx("stop", {
+									offset: "30%",
+									stopColor: "#D6A13A",
+									stopOpacity: "0.42"
+								}),
+								/* @__PURE__ */ jsx("stop", {
+									offset: "50%",
+									stopColor: "#E5B255",
+									stopOpacity: "0.60"
+								}),
+								/* @__PURE__ */ jsx("stop", {
+									offset: "70%",
+									stopColor: "#D6A13A",
+									stopOpacity: "0.42"
+								}),
+								/* @__PURE__ */ jsx("stop", {
+									offset: "100%",
+									stopColor: "#B77A3E",
+									stopOpacity: "0.10"
+								})
+							]
+						}),
+						/* @__PURE__ */ jsxs("linearGradient", {
+							id: "subtleGoldGrad2",
+							x1: "100%",
+							y1: "15%",
+							x2: "0%",
+							y2: "60%",
+							children: [
+								/* @__PURE__ */ jsx("stop", {
+									offset: "0%",
+									stopColor: "#D6A13A",
+									stopOpacity: "0.08"
+								}),
+								/* @__PURE__ */ jsx("stop", {
+									offset: "30%",
+									stopColor: "#D6A13A",
+									stopOpacity: "0.38"
+								}),
+								/* @__PURE__ */ jsx("stop", {
+									offset: "50%",
+									stopColor: "#E8B85C",
+									stopOpacity: "0.55"
+								}),
+								/* @__PURE__ */ jsx("stop", {
+									offset: "75%",
+									stopColor: "#B77A3E",
+									stopOpacity: "0.32"
+								}),
+								/* @__PURE__ */ jsx("stop", {
+									offset: "100%",
+									stopColor: "#D6A13A",
+									stopOpacity: "0.08"
+								})
+							]
+						}),
+						/* @__PURE__ */ jsx("filter", {
+							id: "ambientGlowFilter",
+							x: "-40%",
+							y: "-40%",
+							width: "180%",
+							height: "180%",
+							children: /* @__PURE__ */ jsx("feGaussianBlur", { stdDeviation: "22" })
+						}),
+						/* @__PURE__ */ jsxs("filter", {
+							id: "fineLineSoftFilter",
+							x: "-10%",
+							y: "-10%",
+							width: "120%",
+							height: "120%",
+							children: [/* @__PURE__ */ jsx("feGaussianBlur", {
+								stdDeviation: "0.6",
+								result: "blur"
+							}), /* @__PURE__ */ jsxs("feMerge", { children: [/* @__PURE__ */ jsx("feMergeNode", { in: "blur" }), /* @__PURE__ */ jsx("feMergeNode", { in: "SourceGraphic" })] })]
+						})
+					] }),
+					/* @__PURE__ */ jsxs("g", {
+						className: "contact-anim-ribbons",
+						children: [/* @__PURE__ */ jsx("path", {
+							d: "M -50 670 C 260 740, 520 630, 780 675 C 1080 715, 1360 645, 1650 685 L 1650 950 L -50 950 Z",
+							fill: "url(#silkDuneGrad1)"
+						}), /* @__PURE__ */ jsx("path", {
+							d: "M -50 760 C 300 840, 550 770, 780 675 C 1050 580, 1340 760, 1650 780 L 1650 950 L -50 950 Z",
+							fill: "url(#silkDuneGrad2)"
+						})]
+					}),
+					/* @__PURE__ */ jsx("g", {
+						className: "contact-anim-ambient-glow",
+						children: /* @__PURE__ */ jsx("ellipse", {
+							cx: "780",
+							cy: "680",
+							rx: "180",
+							ry: "70",
+							fill: "url(#diffusedChampagneGlow)",
+							filter: "url(#ambientGlowFilter)"
+						})
+					}),
+					/* @__PURE__ */ jsxs("g", {
+						className: "contact-anim-fine-lines",
+						children: [
+							/* @__PURE__ */ jsx("path", {
+								d: "M -30 240 C 260 360, 520 540, 780 675 C 1040 610, 1340 440, 1630 260",
+								stroke: "url(#delicateWhiteGrad1)",
+								strokeWidth: "1.2",
+								strokeLinecap: "round",
+								filter: "url(#fineLineSoftFilter)"
+							}),
+							/* @__PURE__ */ jsx("path", {
+								d: "M -30 215 C 250 335, 510 525, 775 668 C 1045 605, 1345 425, 1630 235",
+								stroke: "url(#delicateWhiteGrad2)",
+								strokeWidth: "0.85",
+								strokeLinecap: "round",
+								opacity: "0.80"
+							}),
+							/* @__PURE__ */ jsx("path", {
+								d: "M -30 390 C 270 520, 530 625, 780 675 C 1060 640, 1360 560, 1630 460",
+								stroke: "url(#subtleGoldGrad1)",
+								strokeWidth: "1.1",
+								strokeLinecap: "round"
+							}),
+							/* @__PURE__ */ jsx("path", {
+								d: "M -30 420 C 280 540, 540 635, 784 678 C 1065 650, 1365 575, 1630 485",
+								stroke: "url(#delicateWhiteGrad2)",
+								strokeWidth: "0.80",
+								strokeLinecap: "round",
+								opacity: "0.70"
+							}),
+							/* @__PURE__ */ jsx("path", {
+								d: "M -30 720 C 240 790, 520 735, 780 675 C 1060 715, 1350 770, 1630 725",
+								stroke: "url(#delicateWhiteGrad3)",
+								strokeWidth: "1.1",
+								strokeLinecap: "round"
+							}),
+							/* @__PURE__ */ jsx("path", {
+								d: "M -30 745 C 245 810, 525 750, 782 682 C 1065 722, 1355 780, 1630 740",
+								stroke: "url(#delicateWhiteGrad2)",
+								strokeWidth: "0.75",
+								strokeLinecap: "round",
+								opacity: "0.65"
+							}),
+							/* @__PURE__ */ jsx("path", {
+								d: "M 1630 170 C 1360 310, 1080 530, 780 675 C 580 690, 300 660, -30 600",
+								stroke: "url(#subtleGoldGrad2)",
+								strokeWidth: "1.1",
+								strokeLinecap: "round"
+							}),
+							/* @__PURE__ */ jsx("path", {
+								d: "M 1630 195 C 1370 330, 1090 545, 784 678 C 585 693, 305 665, -30 610",
+								stroke: "url(#delicateWhiteGrad2)",
+								strokeWidth: "0.75",
+								strokeLinecap: "round",
+								opacity: "0.60"
+							}),
+							/* @__PURE__ */ jsx("path", {
+								d: "M -30 660 C 270 735, 530 645, 780 675 C 1070 635, 1350 685, 1630 670",
+								stroke: "url(#delicateWhiteGrad1)",
+								strokeWidth: "0.90",
+								strokeLinecap: "round",
+								opacity: "0.75"
+							})
+						]
+					})
+				]
+			})]
 		}), /* @__PURE__ */ jsx("div", {
 			className: "contact-master-container",
 			children: /* @__PURE__ */ jsxs("div", {
@@ -7236,9 +7932,9 @@ var ContactPage = () => {
 						/* @__PURE__ */ jsxs("h1", {
 							className: "contact-hero-title",
 							children: [
-								"Let’s discuss",
+								"Let’s discuss ",
 								/* @__PURE__ */ jsx("br", {}),
-								"your digital",
+								"your digital ",
 								/* @__PURE__ */ jsx("br", {}),
 								/* @__PURE__ */ jsx("span", {
 									className: "title-gold-text",
@@ -7253,6 +7949,10 @@ var ContactPage = () => {
 						/* @__PURE__ */ jsxs("div", {
 							className: "contact-process-list",
 							children: [
+								/* @__PURE__ */ jsx("div", {
+									className: "contact-process-line",
+									"aria-hidden": "true"
+								}),
 								/* @__PURE__ */ jsxs("div", {
 									className: "contact-process-item",
 									children: [/* @__PURE__ */ jsx("div", {
@@ -7263,7 +7963,7 @@ var ContactPage = () => {
 										})
 									}), /* @__PURE__ */ jsxs("div", {
 										className: "contact-process-content",
-										children: [/* @__PURE__ */ jsx("h4", {
+										children: [/* @__PURE__ */ jsx("h3", {
 											className: "contact-process-title",
 											children: "Understand"
 										}), /* @__PURE__ */ jsx("p", {
@@ -7282,7 +7982,7 @@ var ContactPage = () => {
 										})
 									}), /* @__PURE__ */ jsxs("div", {
 										className: "contact-process-content",
-										children: [/* @__PURE__ */ jsx("h4", {
+										children: [/* @__PURE__ */ jsx("h3", {
 											className: "contact-process-title",
 											children: "Strategize"
 										}), /* @__PURE__ */ jsx("p", {
@@ -7301,7 +8001,7 @@ var ContactPage = () => {
 										})
 									}), /* @__PURE__ */ jsxs("div", {
 										className: "contact-process-content",
-										children: [/* @__PURE__ */ jsx("h4", {
+										children: [/* @__PURE__ */ jsx("h3", {
 											className: "contact-process-title",
 											children: "Grow Together"
 										}), /* @__PURE__ */ jsx("p", {
@@ -7555,12 +8255,17 @@ var ContactPage = () => {
 											})]
 										})]
 									}),
+									errorMessage && /* @__PURE__ */ jsxs("div", {
+										className: "contact-error-banner",
+										role: "alert",
+										children: [/* @__PURE__ */ jsx(AlertCircle, { size: 15 }), /* @__PURE__ */ jsx("span", { children: errorMessage })]
+									}),
 									/* @__PURE__ */ jsxs("button", {
 										type: "submit",
 										className: "contact-submit-btn",
 										disabled: isSubmitting,
 										children: [/* @__PURE__ */ jsx("span", { children: isSubmitting ? "Planning Next Step..." : "Plan My Next Step" }), /* @__PURE__ */ jsx(ArrowRight, {
-											size: 15,
+											size: 16,
 											strokeWidth: 2.4,
 											className: "btn-arrow-icon"
 										})]
@@ -8123,8 +8828,8 @@ var proof_of_work_default = UNSAFE_withComponentProps(function Route() {
 //#region \0virtual:react-router/server-manifest
 var server_manifest_default = {
 	"entry": {
-		"module": "/assets/entry.client-DQEU9iaL.js",
-		"imports": ["/assets/jsx-runtime-Cvr-326h.js"],
+		"module": "/assets/entry.client-55VPP4AO.js",
+		"imports": ["/assets/jsx-runtime-BsyjEvTb.js"],
 		"css": []
 	},
 	"routes": {
@@ -8141,21 +8846,21 @@ var server_manifest_default = {
 			"hasClientMiddleware": false,
 			"hasDefaultExport": true,
 			"hasErrorBoundary": false,
-			"module": "/assets/root-B3Rs4Ljv.js",
+			"module": "/assets/root-C32BTJnQ.js",
 			"imports": [
-				"/assets/jsx-runtime-Cvr-326h.js",
-				"/assets/createLucideIcon-BbNJcHBT.js",
-				"/assets/arrow-right-k5NlfRVN.js",
-				"/assets/briefcase-Bgly7gvq.js",
-				"/assets/camera-DUMySuUr.js",
-				"/assets/globe-8idZznCR.js",
-				"/assets/phone-RWIyfIlQ.js",
-				"/assets/message-circle-BflMP5Y5.js",
-				"/assets/x-CiVKf7mP.js",
-				"/assets/proxy-zBmQOEAL.js",
-				"/assets/AnimatePresence-Drl4xYzo.js"
+				"/assets/jsx-runtime-BsyjEvTb.js",
+				"/assets/createLucideIcon-CwdIbnKb.js",
+				"/assets/arrow-right-15U-iPYb.js",
+				"/assets/briefcase-C-mYWWl7.js",
+				"/assets/camera-BhaOD3b7.js",
+				"/assets/globe--SxRTJ5b.js",
+				"/assets/phone-BVAH-4Jp.js",
+				"/assets/message-circle-DbQdYZKU.js",
+				"/assets/x-oUmXnxgy.js",
+				"/assets/proxy-FSJxybC7.js",
+				"/assets/AnimatePresence-C9vUs0fx.js"
 			],
-			"css": ["/assets/root-CltBwnAw.css"],
+			"css": ["/assets/root-CPiTtpRq.css"],
 			"clientActionModule": void 0,
 			"clientLoaderModule": void 0,
 			"clientMiddlewareModule": void 0,
@@ -8174,28 +8879,30 @@ var server_manifest_default = {
 			"hasClientMiddleware": false,
 			"hasDefaultExport": true,
 			"hasErrorBoundary": false,
-			"module": "/assets/home-B1CuXGxY.js",
+			"module": "/assets/home-BwDf12h-.js",
 			"imports": [
-				"/assets/jsx-runtime-Cvr-326h.js",
-				"/assets/createLucideIcon-BbNJcHBT.js",
-				"/assets/arrow-right-k5NlfRVN.js",
-				"/assets/camera-DUMySuUr.js",
-				"/assets/globe-8idZznCR.js",
-				"/assets/circle-check-S5ikvRO3.js",
-				"/assets/file-text-CVXprKjY.js",
-				"/assets/film-Dh7VwMWy.js",
-				"/assets/megaphone-Bv7i9yBl.js",
-				"/assets/monitor-B7r79LQS.js",
-				"/assets/play-BbuW0lfJ.js",
-				"/assets/shield-check-BNM-s0Tw.js",
-				"/assets/target-DczipQuV.js",
-				"/assets/users-C8Q_xggT.js",
-				"/assets/x-CiVKf7mP.js",
-				"/assets/proxy-zBmQOEAL.js",
-				"/assets/AnimatePresence-Drl4xYzo.js",
-				"/assets/ScrollReveal-BRMbBkGN.js"
+				"/assets/jsx-runtime-BsyjEvTb.js",
+				"/assets/createLucideIcon-CwdIbnKb.js",
+				"/assets/arrow-right-15U-iPYb.js",
+				"/assets/camera-BhaOD3b7.js",
+				"/assets/chart-column-CkOwwm5a.js",
+				"/assets/globe--SxRTJ5b.js",
+				"/assets/circle-check-CH-gujLG.js",
+				"/assets/compass-DXamaL9V.js",
+				"/assets/file-text-Burlk_f5.js",
+				"/assets/film-UP_0_Rum.js",
+				"/assets/megaphone-CuRaGHmu.js",
+				"/assets/monitor-DYPScnuF.js",
+				"/assets/volume-x-D1yjPhwW.js",
+				"/assets/shield-check-DMuVmhW2.js",
+				"/assets/target-ZJMD494F.js",
+				"/assets/users-C2my3pE2.js",
+				"/assets/x-oUmXnxgy.js",
+				"/assets/proxy-FSJxybC7.js",
+				"/assets/AnimatePresence-C9vUs0fx.js",
+				"/assets/ScrollReveal-CXAisqc7.js"
 			],
-			"css": ["/assets/home-DZTTzo14.css"],
+			"css": ["/assets/home-DUIWnZL2.css"],
 			"clientActionModule": void 0,
 			"clientLoaderModule": void 0,
 			"clientMiddlewareModule": void 0,
@@ -8214,19 +8921,19 @@ var server_manifest_default = {
 			"hasClientMiddleware": false,
 			"hasDefaultExport": true,
 			"hasErrorBoundary": false,
-			"module": "/assets/education-BfngmbxV.js",
+			"module": "/assets/education-BcLeNXlH.js",
 			"imports": [
-				"/assets/jsx-runtime-Cvr-326h.js",
-				"/assets/arrow-right-k5NlfRVN.js",
-				"/assets/map-pin-CWZfprJV.js",
-				"/assets/megaphone-Bv7i9yBl.js",
-				"/assets/monitor-B7r79LQS.js",
-				"/assets/trending-up-BEn5d48e.js",
-				"/assets/users-C8Q_xggT.js",
-				"/assets/ScrollReveal-BRMbBkGN.js",
-				"/assets/createLucideIcon-BbNJcHBT.js"
+				"/assets/jsx-runtime-BsyjEvTb.js",
+				"/assets/arrow-right-15U-iPYb.js",
+				"/assets/map-pin-BIDWhrwv.js",
+				"/assets/megaphone-CuRaGHmu.js",
+				"/assets/monitor-DYPScnuF.js",
+				"/assets/trending-up-P5GqPifz.js",
+				"/assets/users-C2my3pE2.js",
+				"/assets/ScrollReveal-CXAisqc7.js",
+				"/assets/createLucideIcon-CwdIbnKb.js"
 			],
-			"css": ["/assets/IndustryPage-tWuJ6uW7.css"],
+			"css": ["/assets/IndustryPage-DaNxJRA9.css"],
 			"clientActionModule": void 0,
 			"clientLoaderModule": void 0,
 			"clientMiddlewareModule": void 0,
@@ -8245,19 +8952,19 @@ var server_manifest_default = {
 			"hasClientMiddleware": false,
 			"hasDefaultExport": true,
 			"hasErrorBoundary": false,
-			"module": "/assets/healthcare-C-mXUQpg.js",
+			"module": "/assets/healthcare-BxsbbO1A.js",
 			"imports": [
-				"/assets/jsx-runtime-Cvr-326h.js",
-				"/assets/arrow-right-k5NlfRVN.js",
-				"/assets/map-pin-CWZfprJV.js",
-				"/assets/megaphone-Bv7i9yBl.js",
-				"/assets/monitor-B7r79LQS.js",
-				"/assets/trending-up-BEn5d48e.js",
-				"/assets/users-C8Q_xggT.js",
-				"/assets/ScrollReveal-BRMbBkGN.js",
-				"/assets/createLucideIcon-BbNJcHBT.js"
+				"/assets/jsx-runtime-BsyjEvTb.js",
+				"/assets/arrow-right-15U-iPYb.js",
+				"/assets/map-pin-BIDWhrwv.js",
+				"/assets/megaphone-CuRaGHmu.js",
+				"/assets/monitor-DYPScnuF.js",
+				"/assets/trending-up-P5GqPifz.js",
+				"/assets/users-C2my3pE2.js",
+				"/assets/ScrollReveal-CXAisqc7.js",
+				"/assets/createLucideIcon-CwdIbnKb.js"
 			],
-			"css": ["/assets/IndustryPage-tWuJ6uW7.css"],
+			"css": ["/assets/IndustryPage-DaNxJRA9.css"],
 			"clientActionModule": void 0,
 			"clientLoaderModule": void 0,
 			"clientMiddlewareModule": void 0,
@@ -8276,18 +8983,19 @@ var server_manifest_default = {
 			"hasClientMiddleware": false,
 			"hasDefaultExport": true,
 			"hasErrorBoundary": false,
-			"module": "/assets/professional-services-bMiym-Uj.js",
+			"module": "/assets/professional-services-Dg2Iw_MP.js",
 			"imports": [
-				"/assets/jsx-runtime-Cvr-326h.js",
-				"/assets/createLucideIcon-BbNJcHBT.js",
-				"/assets/arrow-right-k5NlfRVN.js",
-				"/assets/building-complex-DFGqTMf4.js",
-				"/assets/circle-check-S5ikvRO3.js",
-				"/assets/graduation-cap-CF9icxxw.js",
-				"/assets/shield-check-BNM-s0Tw.js",
-				"/assets/ScrollReveal-BRMbBkGN.js"
+				"/assets/jsx-runtime-BsyjEvTb.js",
+				"/assets/createLucideIcon-CwdIbnKb.js",
+				"/assets/arrow-right-15U-iPYb.js",
+				"/assets/building-complex-CLCqMRLP.js",
+				"/assets/circle-check-CH-gujLG.js",
+				"/assets/compass-DXamaL9V.js",
+				"/assets/graduation-cap-rFlmePL7.js",
+				"/assets/shield-check-DMuVmhW2.js",
+				"/assets/ScrollReveal-CXAisqc7.js"
 			],
-			"css": ["/assets/professional-services-Dp8oGgwr.css", "/assets/IndustryPage-tWuJ6uW7.css"],
+			"css": ["/assets/professional-services-Dp8oGgwr.css", "/assets/IndustryPage-DaNxJRA9.css"],
 			"clientActionModule": void 0,
 			"clientLoaderModule": void 0,
 			"clientMiddlewareModule": void 0,
@@ -8306,33 +9014,32 @@ var server_manifest_default = {
 			"hasClientMiddleware": false,
 			"hasDefaultExport": true,
 			"hasErrorBoundary": false,
-			"module": "/assets/solutions-a688B27_.js",
+			"module": "/assets/solutions-C_EcNiYT.js",
 			"imports": [
-				"/assets/jsx-runtime-Cvr-326h.js",
-				"/assets/SolutionsOverviewPage-BB0wSjEt.js",
-				"/assets/createLucideIcon-BbNJcHBT.js",
-				"/assets/arrow-left-scHdNfpQ.js",
-				"/assets/arrow-right-k5NlfRVN.js",
-				"/assets/image-C3X9OXTY.js",
-				"/assets/chart-column-DZTyXbzW.js",
-				"/assets/globe-8idZznCR.js",
-				"/assets/film-Dh7VwMWy.js",
-				"/assets/heart-TQN8Gu2o.js",
-				"/assets/map-pin-CWZfprJV.js",
-				"/assets/megaphone-Bv7i9yBl.js",
-				"/assets/message-circle-BflMP5Y5.js",
-				"/assets/palette-CjJ94Ot-.js",
-				"/assets/play-BbuW0lfJ.js",
-				"/assets/search-BOudbhu_.js",
-				"/assets/shield-check-BNM-s0Tw.js",
-				"/assets/target-DczipQuV.js",
-				"/assets/user-B3bsvgyS.js",
-				"/assets/users-C8Q_xggT.js",
-				"/assets/proxy-zBmQOEAL.js",
-				"/assets/AnimatePresence-Drl4xYzo.js",
-				"/assets/ScrollReveal-BRMbBkGN.js"
+				"/assets/jsx-runtime-BsyjEvTb.js",
+				"/assets/SolutionsOverviewPage-6tU915vr.js",
+				"/assets/createLucideIcon-CwdIbnKb.js",
+				"/assets/arrow-left-4APnbDld.js",
+				"/assets/arrow-right-15U-iPYb.js",
+				"/assets/image-NZ-E0ZXK.js",
+				"/assets/chart-column-CkOwwm5a.js",
+				"/assets/globe--SxRTJ5b.js",
+				"/assets/film-UP_0_Rum.js",
+				"/assets/heart-BKxYrWhg.js",
+				"/assets/map-pin-BIDWhrwv.js",
+				"/assets/megaphone-CuRaGHmu.js",
+				"/assets/message-circle-DbQdYZKU.js",
+				"/assets/palette-DcTihtN5.js",
+				"/assets/volume-x-D1yjPhwW.js",
+				"/assets/search-D5LEcq4c.js",
+				"/assets/shield-check-DMuVmhW2.js",
+				"/assets/target-ZJMD494F.js",
+				"/assets/users-C2my3pE2.js",
+				"/assets/proxy-FSJxybC7.js",
+				"/assets/AnimatePresence-C9vUs0fx.js",
+				"/assets/ScrollReveal-CXAisqc7.js"
 			],
-			"css": ["/assets/SolutionsOverviewPage-M-TccOgD.css"],
+			"css": ["/assets/SolutionsOverviewPage-DagsXBOh.css"],
 			"clientActionModule": void 0,
 			"clientLoaderModule": void 0,
 			"clientMiddlewareModule": void 0,
@@ -8351,33 +9058,32 @@ var server_manifest_default = {
 			"hasClientMiddleware": false,
 			"hasDefaultExport": true,
 			"hasErrorBoundary": false,
-			"module": "/assets/build-Cw3JRyKv.js",
+			"module": "/assets/build-DXrBB1UG.js",
 			"imports": [
-				"/assets/jsx-runtime-Cvr-326h.js",
-				"/assets/SolutionsOverviewPage-BB0wSjEt.js",
-				"/assets/createLucideIcon-BbNJcHBT.js",
-				"/assets/arrow-left-scHdNfpQ.js",
-				"/assets/arrow-right-k5NlfRVN.js",
-				"/assets/image-C3X9OXTY.js",
-				"/assets/chart-column-DZTyXbzW.js",
-				"/assets/globe-8idZznCR.js",
-				"/assets/film-Dh7VwMWy.js",
-				"/assets/heart-TQN8Gu2o.js",
-				"/assets/map-pin-CWZfprJV.js",
-				"/assets/megaphone-Bv7i9yBl.js",
-				"/assets/message-circle-BflMP5Y5.js",
-				"/assets/palette-CjJ94Ot-.js",
-				"/assets/play-BbuW0lfJ.js",
-				"/assets/search-BOudbhu_.js",
-				"/assets/shield-check-BNM-s0Tw.js",
-				"/assets/target-DczipQuV.js",
-				"/assets/user-B3bsvgyS.js",
-				"/assets/users-C8Q_xggT.js",
-				"/assets/proxy-zBmQOEAL.js",
-				"/assets/AnimatePresence-Drl4xYzo.js",
-				"/assets/ScrollReveal-BRMbBkGN.js"
+				"/assets/jsx-runtime-BsyjEvTb.js",
+				"/assets/SolutionsOverviewPage-6tU915vr.js",
+				"/assets/createLucideIcon-CwdIbnKb.js",
+				"/assets/arrow-left-4APnbDld.js",
+				"/assets/arrow-right-15U-iPYb.js",
+				"/assets/image-NZ-E0ZXK.js",
+				"/assets/chart-column-CkOwwm5a.js",
+				"/assets/globe--SxRTJ5b.js",
+				"/assets/film-UP_0_Rum.js",
+				"/assets/heart-BKxYrWhg.js",
+				"/assets/map-pin-BIDWhrwv.js",
+				"/assets/megaphone-CuRaGHmu.js",
+				"/assets/message-circle-DbQdYZKU.js",
+				"/assets/palette-DcTihtN5.js",
+				"/assets/volume-x-D1yjPhwW.js",
+				"/assets/search-D5LEcq4c.js",
+				"/assets/shield-check-DMuVmhW2.js",
+				"/assets/target-ZJMD494F.js",
+				"/assets/users-C2my3pE2.js",
+				"/assets/proxy-FSJxybC7.js",
+				"/assets/AnimatePresence-C9vUs0fx.js",
+				"/assets/ScrollReveal-CXAisqc7.js"
 			],
-			"css": ["/assets/SolutionsOverviewPage-M-TccOgD.css"],
+			"css": ["/assets/SolutionsOverviewPage-DagsXBOh.css"],
 			"clientActionModule": void 0,
 			"clientLoaderModule": void 0,
 			"clientMiddlewareModule": void 0,
@@ -8396,33 +9102,32 @@ var server_manifest_default = {
 			"hasClientMiddleware": false,
 			"hasDefaultExport": true,
 			"hasErrorBoundary": false,
-			"module": "/assets/create-SMf0f-KY.js",
+			"module": "/assets/create-CipIZtaW.js",
 			"imports": [
-				"/assets/jsx-runtime-Cvr-326h.js",
-				"/assets/SolutionsOverviewPage-BB0wSjEt.js",
-				"/assets/createLucideIcon-BbNJcHBT.js",
-				"/assets/arrow-left-scHdNfpQ.js",
-				"/assets/arrow-right-k5NlfRVN.js",
-				"/assets/image-C3X9OXTY.js",
-				"/assets/chart-column-DZTyXbzW.js",
-				"/assets/globe-8idZznCR.js",
-				"/assets/film-Dh7VwMWy.js",
-				"/assets/heart-TQN8Gu2o.js",
-				"/assets/map-pin-CWZfprJV.js",
-				"/assets/megaphone-Bv7i9yBl.js",
-				"/assets/message-circle-BflMP5Y5.js",
-				"/assets/palette-CjJ94Ot-.js",
-				"/assets/play-BbuW0lfJ.js",
-				"/assets/search-BOudbhu_.js",
-				"/assets/shield-check-BNM-s0Tw.js",
-				"/assets/target-DczipQuV.js",
-				"/assets/user-B3bsvgyS.js",
-				"/assets/users-C8Q_xggT.js",
-				"/assets/proxy-zBmQOEAL.js",
-				"/assets/AnimatePresence-Drl4xYzo.js",
-				"/assets/ScrollReveal-BRMbBkGN.js"
+				"/assets/jsx-runtime-BsyjEvTb.js",
+				"/assets/SolutionsOverviewPage-6tU915vr.js",
+				"/assets/createLucideIcon-CwdIbnKb.js",
+				"/assets/arrow-left-4APnbDld.js",
+				"/assets/arrow-right-15U-iPYb.js",
+				"/assets/image-NZ-E0ZXK.js",
+				"/assets/chart-column-CkOwwm5a.js",
+				"/assets/globe--SxRTJ5b.js",
+				"/assets/film-UP_0_Rum.js",
+				"/assets/heart-BKxYrWhg.js",
+				"/assets/map-pin-BIDWhrwv.js",
+				"/assets/megaphone-CuRaGHmu.js",
+				"/assets/message-circle-DbQdYZKU.js",
+				"/assets/palette-DcTihtN5.js",
+				"/assets/volume-x-D1yjPhwW.js",
+				"/assets/search-D5LEcq4c.js",
+				"/assets/shield-check-DMuVmhW2.js",
+				"/assets/target-ZJMD494F.js",
+				"/assets/users-C2my3pE2.js",
+				"/assets/proxy-FSJxybC7.js",
+				"/assets/AnimatePresence-C9vUs0fx.js",
+				"/assets/ScrollReveal-CXAisqc7.js"
 			],
-			"css": ["/assets/SolutionsOverviewPage-M-TccOgD.css"],
+			"css": ["/assets/SolutionsOverviewPage-DagsXBOh.css"],
 			"clientActionModule": void 0,
 			"clientLoaderModule": void 0,
 			"clientMiddlewareModule": void 0,
@@ -8441,33 +9146,32 @@ var server_manifest_default = {
 			"hasClientMiddleware": false,
 			"hasDefaultExport": true,
 			"hasErrorBoundary": false,
-			"module": "/assets/promote-rAXXHWv1.js",
+			"module": "/assets/promote-CRan_kQL.js",
 			"imports": [
-				"/assets/jsx-runtime-Cvr-326h.js",
-				"/assets/SolutionsOverviewPage-BB0wSjEt.js",
-				"/assets/createLucideIcon-BbNJcHBT.js",
-				"/assets/arrow-left-scHdNfpQ.js",
-				"/assets/arrow-right-k5NlfRVN.js",
-				"/assets/image-C3X9OXTY.js",
-				"/assets/chart-column-DZTyXbzW.js",
-				"/assets/globe-8idZznCR.js",
-				"/assets/film-Dh7VwMWy.js",
-				"/assets/heart-TQN8Gu2o.js",
-				"/assets/map-pin-CWZfprJV.js",
-				"/assets/megaphone-Bv7i9yBl.js",
-				"/assets/message-circle-BflMP5Y5.js",
-				"/assets/palette-CjJ94Ot-.js",
-				"/assets/play-BbuW0lfJ.js",
-				"/assets/search-BOudbhu_.js",
-				"/assets/shield-check-BNM-s0Tw.js",
-				"/assets/target-DczipQuV.js",
-				"/assets/user-B3bsvgyS.js",
-				"/assets/users-C8Q_xggT.js",
-				"/assets/proxy-zBmQOEAL.js",
-				"/assets/AnimatePresence-Drl4xYzo.js",
-				"/assets/ScrollReveal-BRMbBkGN.js"
+				"/assets/jsx-runtime-BsyjEvTb.js",
+				"/assets/SolutionsOverviewPage-6tU915vr.js",
+				"/assets/createLucideIcon-CwdIbnKb.js",
+				"/assets/arrow-left-4APnbDld.js",
+				"/assets/arrow-right-15U-iPYb.js",
+				"/assets/image-NZ-E0ZXK.js",
+				"/assets/chart-column-CkOwwm5a.js",
+				"/assets/globe--SxRTJ5b.js",
+				"/assets/film-UP_0_Rum.js",
+				"/assets/heart-BKxYrWhg.js",
+				"/assets/map-pin-BIDWhrwv.js",
+				"/assets/megaphone-CuRaGHmu.js",
+				"/assets/message-circle-DbQdYZKU.js",
+				"/assets/palette-DcTihtN5.js",
+				"/assets/volume-x-D1yjPhwW.js",
+				"/assets/search-D5LEcq4c.js",
+				"/assets/shield-check-DMuVmhW2.js",
+				"/assets/target-ZJMD494F.js",
+				"/assets/users-C2my3pE2.js",
+				"/assets/proxy-FSJxybC7.js",
+				"/assets/AnimatePresence-C9vUs0fx.js",
+				"/assets/ScrollReveal-CXAisqc7.js"
 			],
-			"css": ["/assets/SolutionsOverviewPage-M-TccOgD.css"],
+			"css": ["/assets/SolutionsOverviewPage-DagsXBOh.css"],
 			"clientActionModule": void 0,
 			"clientLoaderModule": void 0,
 			"clientMiddlewareModule": void 0,
@@ -8486,17 +9190,17 @@ var server_manifest_default = {
 			"hasClientMiddleware": false,
 			"hasDefaultExport": true,
 			"hasErrorBoundary": false,
-			"module": "/assets/about-D9quYKiE.js",
+			"module": "/assets/about-CWKcl1ML.js",
 			"imports": [
-				"/assets/jsx-runtime-Cvr-326h.js",
-				"/assets/briefcase-Bgly7gvq.js",
-				"/assets/graduation-cap-CF9icxxw.js",
-				"/assets/heart-TQN8Gu2o.js",
-				"/assets/target-DczipQuV.js",
-				"/assets/trending-up-BEn5d48e.js",
-				"/assets/users-C8Q_xggT.js",
-				"/assets/ScrollReveal-BRMbBkGN.js",
-				"/assets/createLucideIcon-BbNJcHBT.js"
+				"/assets/jsx-runtime-BsyjEvTb.js",
+				"/assets/briefcase-C-mYWWl7.js",
+				"/assets/graduation-cap-rFlmePL7.js",
+				"/assets/heart-BKxYrWhg.js",
+				"/assets/target-ZJMD494F.js",
+				"/assets/trending-up-P5GqPifz.js",
+				"/assets/users-C2my3pE2.js",
+				"/assets/ScrollReveal-CXAisqc7.js",
+				"/assets/createLucideIcon-CwdIbnKb.js"
 			],
 			"css": ["/assets/about-5IYE-Zsv.css"],
 			"clientActionModule": void 0,
@@ -8517,17 +9221,17 @@ var server_manifest_default = {
 			"hasClientMiddleware": false,
 			"hasDefaultExport": true,
 			"hasErrorBoundary": false,
-			"module": "/assets/how-it-works-BD7r8QZK.js",
+			"module": "/assets/how-it-works-Cdi_pshQ.js",
 			"imports": [
-				"/assets/jsx-runtime-Cvr-326h.js",
-				"/assets/createLucideIcon-BbNJcHBT.js",
-				"/assets/arrow-left-scHdNfpQ.js",
-				"/assets/arrow-right-k5NlfRVN.js",
-				"/assets/chart-column-DZTyXbzW.js",
-				"/assets/lightbulb-CK4OYYs2.js",
-				"/assets/search-BOudbhu_.js",
-				"/assets/trending-up-BEn5d48e.js",
-				"/assets/proxy-zBmQOEAL.js"
+				"/assets/jsx-runtime-BsyjEvTb.js",
+				"/assets/createLucideIcon-CwdIbnKb.js",
+				"/assets/arrow-left-4APnbDld.js",
+				"/assets/arrow-right-15U-iPYb.js",
+				"/assets/chart-column-CkOwwm5a.js",
+				"/assets/lightbulb-CPfvZZEL.js",
+				"/assets/search-D5LEcq4c.js",
+				"/assets/trending-up-P5GqPifz.js",
+				"/assets/proxy-FSJxybC7.js"
 			],
 			"css": ["/assets/how-it-works-BuG3iXEo.css"],
 			"clientActionModule": void 0,
@@ -8548,23 +9252,23 @@ var server_manifest_default = {
 			"hasClientMiddleware": false,
 			"hasDefaultExport": true,
 			"hasErrorBoundary": false,
-			"module": "/assets/creative-workspace-BTzJDzNm.js",
+			"module": "/assets/creative-workspace-BCunGaUy.js",
 			"imports": [
-				"/assets/jsx-runtime-Cvr-326h.js",
-				"/assets/createLucideIcon-BbNJcHBT.js",
-				"/assets/arrow-right-k5NlfRVN.js",
-				"/assets/briefcase-Bgly7gvq.js",
-				"/assets/circle-check-S5ikvRO3.js",
-				"/assets/file-text-CVXprKjY.js",
-				"/assets/film-Dh7VwMWy.js",
-				"/assets/phone-RWIyfIlQ.js",
-				"/assets/megaphone-Bv7i9yBl.js",
-				"/assets/palette-CjJ94Ot-.js",
-				"/assets/user-B3bsvgyS.js",
-				"/assets/users-C8Q_xggT.js",
-				"/assets/ScrollReveal-BRMbBkGN.js"
+				"/assets/jsx-runtime-BsyjEvTb.js",
+				"/assets/createLucideIcon-CwdIbnKb.js",
+				"/assets/arrow-right-15U-iPYb.js",
+				"/assets/briefcase-C-mYWWl7.js",
+				"/assets/forms-B3Rd3lDs.js",
+				"/assets/circle-check-CH-gujLG.js",
+				"/assets/file-text-Burlk_f5.js",
+				"/assets/film-UP_0_Rum.js",
+				"/assets/phone-BVAH-4Jp.js",
+				"/assets/megaphone-CuRaGHmu.js",
+				"/assets/palette-DcTihtN5.js",
+				"/assets/users-C2my3pE2.js",
+				"/assets/ScrollReveal-CXAisqc7.js"
 			],
-			"css": ["/assets/creative-workspace-Dagk2enX.css"],
+			"css": ["/assets/creative-workspace-DgzZnt3a.css"],
 			"clientActionModule": void 0,
 			"clientLoaderModule": void 0,
 			"clientMiddlewareModule": void 0,
@@ -8583,8 +9287,8 @@ var server_manifest_default = {
 			"hasClientMiddleware": false,
 			"hasDefaultExport": true,
 			"hasErrorBoundary": false,
-			"module": "/assets/apply-CWifBGgu.js",
-			"imports": ["/assets/jsx-runtime-Cvr-326h.js"],
+			"module": "/assets/apply-BtdK-Xzp.js",
+			"imports": ["/assets/jsx-runtime-BsyjEvTb.js"],
 			"css": [],
 			"clientActionModule": void 0,
 			"clientLoaderModule": void 0,
@@ -8604,20 +9308,20 @@ var server_manifest_default = {
 			"hasClientMiddleware": false,
 			"hasDefaultExport": true,
 			"hasErrorBoundary": false,
-			"module": "/assets/contact-AfHFM5do.js",
+			"module": "/assets/contact-BwRd8uxJ.js",
 			"imports": [
-				"/assets/jsx-runtime-Cvr-326h.js",
-				"/assets/createLucideIcon-BbNJcHBT.js",
-				"/assets/arrow-right-k5NlfRVN.js",
-				"/assets/building-complex-DFGqTMf4.js",
-				"/assets/chart-column-DZTyXbzW.js",
-				"/assets/circle-check-S5ikvRO3.js",
-				"/assets/file-text-CVXprKjY.js",
-				"/assets/lightbulb-CK4OYYs2.js",
-				"/assets/phone-RWIyfIlQ.js",
-				"/assets/user-B3bsvgyS.js"
+				"/assets/jsx-runtime-BsyjEvTb.js",
+				"/assets/createLucideIcon-CwdIbnKb.js",
+				"/assets/arrow-right-15U-iPYb.js",
+				"/assets/building-complex-CLCqMRLP.js",
+				"/assets/chart-column-CkOwwm5a.js",
+				"/assets/forms-B3Rd3lDs.js",
+				"/assets/circle-check-CH-gujLG.js",
+				"/assets/file-text-Burlk_f5.js",
+				"/assets/lightbulb-CPfvZZEL.js",
+				"/assets/phone-BVAH-4Jp.js"
 			],
-			"css": ["/assets/contact-6JLp--au.css"],
+			"css": ["/assets/contact-t5E5GrSm.css"],
 			"clientActionModule": void 0,
 			"clientLoaderModule": void 0,
 			"clientMiddlewareModule": void 0,
@@ -8636,27 +9340,27 @@ var server_manifest_default = {
 			"hasClientMiddleware": false,
 			"hasDefaultExport": true,
 			"hasErrorBoundary": false,
-			"module": "/assets/proof-of-work-BxUIS1aI.js",
+			"module": "/assets/proof-of-work-DKFcEMnO.js",
 			"imports": [
-				"/assets/jsx-runtime-Cvr-326h.js",
-				"/assets/createLucideIcon-BbNJcHBT.js",
-				"/assets/arrow-right-k5NlfRVN.js",
-				"/assets/image-C3X9OXTY.js",
-				"/assets/camera-DUMySuUr.js",
-				"/assets/chart-column-DZTyXbzW.js",
-				"/assets/circle-check-S5ikvRO3.js",
-				"/assets/file-text-CVXprKjY.js",
-				"/assets/film-Dh7VwMWy.js",
-				"/assets/heart-TQN8Gu2o.js",
-				"/assets/map-pin-CWZfprJV.js",
-				"/assets/monitor-B7r79LQS.js",
-				"/assets/search-BOudbhu_.js",
-				"/assets/target-DczipQuV.js",
-				"/assets/trending-up-BEn5d48e.js",
-				"/assets/users-C8Q_xggT.js",
-				"/assets/proxy-zBmQOEAL.js",
-				"/assets/AnimatePresence-Drl4xYzo.js",
-				"/assets/ScrollReveal-BRMbBkGN.js"
+				"/assets/jsx-runtime-BsyjEvTb.js",
+				"/assets/createLucideIcon-CwdIbnKb.js",
+				"/assets/arrow-right-15U-iPYb.js",
+				"/assets/image-NZ-E0ZXK.js",
+				"/assets/camera-BhaOD3b7.js",
+				"/assets/chart-column-CkOwwm5a.js",
+				"/assets/circle-check-CH-gujLG.js",
+				"/assets/file-text-Burlk_f5.js",
+				"/assets/film-UP_0_Rum.js",
+				"/assets/heart-BKxYrWhg.js",
+				"/assets/map-pin-BIDWhrwv.js",
+				"/assets/monitor-DYPScnuF.js",
+				"/assets/search-D5LEcq4c.js",
+				"/assets/target-ZJMD494F.js",
+				"/assets/trending-up-P5GqPifz.js",
+				"/assets/users-C2my3pE2.js",
+				"/assets/proxy-FSJxybC7.js",
+				"/assets/AnimatePresence-C9vUs0fx.js",
+				"/assets/ScrollReveal-CXAisqc7.js"
 			],
 			"css": ["/assets/proof-of-work-CCyIXzzI.css"],
 			"clientActionModule": void 0,
@@ -8665,8 +9369,8 @@ var server_manifest_default = {
 			"hydrateFallbackModule": void 0
 		}
 	},
-	"url": "/assets/manifest-bb1f96bd.js",
-	"version": "bb1f96bd",
+	"url": "/assets/manifest-631bb4c8.js",
+	"version": "631bb4c8",
 	"sri": void 0
 };
 //#endregion

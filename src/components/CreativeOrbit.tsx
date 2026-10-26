@@ -7,36 +7,39 @@ export const CreativeOrbit: React.FC = () => {
     <div className="co-wrapper">
       <div className="co-radial-glow"></div>
       
-      {/* Outer Ring (CW 35-45s) */}
+      {/* Outer Dashed Ring */}
       <div className="co-outer-ring">
-        {/* Top: Design */}
-        <div className="co-node co-node-top">
-          <div className="co-node-content co-counter-cw-slow">
+        {/* Left: Design */}
+        <div className="co-node co-node-design">
+          <div className="co-node-content">
             <div className="co-icon-box"><PenTool size={20} /></div>
             <span className="co-label">DESIGN</span>
           </div>
         </div>
-        {/* Bottom: Video */}
-        <div className="co-node co-node-bottom">
-          <div className="co-node-content co-counter-cw-slow">
+        {/* Right: Video */}
+        <div className="co-node co-node-video">
+          <div className="co-node-content">
             <div className="co-icon-box"><Film size={20} /></div>
             <span className="co-label">VIDEO</span>
           </div>
         </div>
+        {/* Subtle celestial gold beads matching reference design */}
+        <div className="co-bead co-bead-top-right" />
+        <div className="co-bead co-bead-bottom" />
       </div>
 
-      {/* Inner Ring (CCW 25-30s) */}
+      {/* Inner Solid Ring */}
       <div className="co-inner-ring">
-        {/* Left: Content */}
-        <div className="co-node co-node-left">
-          <div className="co-node-content co-counter-ccw-fast">
+        {/* Top-Right: Content */}
+        <div className="co-node co-node-content-pos">
+          <div className="co-node-content">
             <div className="co-icon-box"><FileText size={20} /></div>
             <span className="co-label">CONTENT</span>
           </div>
         </div>
-        {/* Right: Digital */}
-        <div className="co-node co-node-right">
-          <div className="co-node-content co-counter-ccw-fast">
+        {/* Bottom-Left: Digital */}
+        <div className="co-node co-node-digital-pos">
+          <div className="co-node-content">
             <div className="co-icon-box"><MonitorSmartphone size={20} /></div>
             <span className="co-label">DIGITAL</span>
           </div>

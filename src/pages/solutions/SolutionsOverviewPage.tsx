@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -24,7 +24,8 @@ import {
   Send,
   Bookmark,
   ChevronDown,
-  User,
+  Volume2,
+  VolumeX,
   type LucideIcon
 } from 'lucide-react';
 import { ScrollReveal } from '../../components/ScrollReveal';
@@ -185,9 +186,34 @@ export const SolutionsOverviewPage: React.FC<SolutionsPageProps> = ({ initialSec
   const location = useLocation();
   const [activeIdx, setActiveIdx] = useState(0);
   const [direction, setDirection] = useState(1);
-  const [activeAdTab, setActiveAdTab] = useState<'meta' | 'google'>('meta');
 
   const activeStage = STAGES[activeIdx];
+
+  // State & Ref for Promote Section Video (IMG_3694.mp4)
+  const [isPromoteMuted, setIsPromoteMuted] = useState(true);
+  const [isPromotePlaying, setIsPromotePlaying] = useState(true);
+  const promoteVideoRef = useRef<HTMLVideoElement>(null);
+
+  const togglePromoteMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (promoteVideoRef.current) {
+      promoteVideoRef.current.muted = !promoteVideoRef.current.muted;
+      setIsPromoteMuted(promoteVideoRef.current.muted);
+    }
+  };
+
+  const togglePromotePlay = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (promoteVideoRef.current) {
+      if (promoteVideoRef.current.paused) {
+        promoteVideoRef.current.play().catch(() => {});
+        setIsPromotePlaying(true);
+      } else {
+        promoteVideoRef.current.pause();
+        setIsPromotePlaying(false);
+      }
+    }
+  };
 
   // Switch to a specific stage directly without scrolling
   const goToStage = (newIdx: number) => {
@@ -544,128 +570,35 @@ export const SolutionsOverviewPage: React.FC<SolutionsPageProps> = ({ initialSec
                         </div>
                       )}
 
-                      {/* SECTION 03 — PROMOTE: Platform Selector + Campaign Performance + Audience */}
+                      {/* SECTION 03 — PROMOTE: Only the Video Displayed (IMG_3694.mp4) */}
                       {activeStage.id === 'promote' && (
-                        <div className="sol-mock-promote">
-                          {/* Platform Selector Tabs */}
-                          <div className="sol-promote-tabs">
-                            <button 
-                              type="button" 
-                              className={`sol-promote-tab-btn ${activeAdTab === 'meta' ? 'active' : ''}`}
-                              onClick={() => setActiveAdTab('meta')}
+                        <div className="sol-mock-promote sol-video-only-view">
+                          <div 
+                            className="sol-promote-video-box"
+                            onClick={togglePromotePlay}
+                            title={isPromotePlaying ? "Click to pause" : "Click to play"}
+                            style={{ cursor: 'pointer' }}
+                          >
+                            <video
+                              ref={promoteVideoRef}
+                              src="/IMG_3694.mp4"
+                              autoPlay
+                              muted={isPromoteMuted}
+                              loop
+                              playsInline
+                              className="sol-promote-video-element"
+                            />
+
+                            {/* Floating Sound Toggle Button */}
+                            <button
+                              type="button"
+                              onClick={togglePromoteMute}
+                              className="sol-video-sound-floating-btn"
+                              aria-label={isPromoteMuted ? "Unmute audio" : "Mute audio"}
+                              title={isPromoteMuted ? "Unmute" : "Mute"}
                             >
-                              <div className="sol-meta-icon-svg">
-                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                                  <path d="M12 7.2c-2.4 0-4.3 1.6-5.3 3.6-.9-1.9-2.7-3.4-4.8-3.6C.8 7.1-.1 8.1 0 9.2c.2 2.6 1.8 5.6 4.6 5.6 2.3 0 4.1-1.6 5.1-3.6.9 1.9 2.7 3.4 4.8 3.6 1.1.1 2-.9 1.9-2-.2-2.6-1.8-5.6-4.4-5.6zm-7.4 6c-1.7 0-2.8-2-2.9-3.8 0-.4.3-.7.7-.7 1.4 0 2.8 1.4 3.7 3.1-.4.9-.9 1.4-1.5 1.4zm10.8 0c-.6 0-1.1-.5-1.5-1.4.9-1.7 2.3-3.1 3.7-3.1.4 0 .7.3.7.7-.1 1.8-1.2 3.8-2.9 3.8z"/>
-                                </svg>
-                              </div>
-                              <span>Meta Ads</span>
+                              {isPromoteMuted ? <VolumeX size={15} /> : <Volume2 size={15} />}
                             </button>
-
-                            <button 
-                              type="button" 
-                              className={`sol-promote-tab-btn ${activeAdTab === 'google' ? 'active' : ''}`}
-                              onClick={() => setActiveAdTab('google')}
-                            >
-                              <div className="sol-gads-icon-svg">
-                                <svg viewBox="0 0 24 24" width="16" height="16">
-                                  <polygon points="4,20 10,4 14,4 8,20" fill="#4285F4" />
-                                  <polygon points="12,4 16,4 22,20 18,20" fill="#FBBC05" />
-                                  <circle cx="6" cy="18" r="3" fill="#34A853" />
-                                </svg>
-                              </div>
-                              <span>Google Ads</span>
-                            </button>
-                          </div>
-
-                          {/* Campaign Performance Card */}
-                          <div className="sol-perf-card">
-                            <div className="sol-perf-header">
-                              <span className="sol-perf-title">Campaign Performance</span>
-                              <div className="sol-dropdown-badge">
-                                <span>Last 30 Days</span>
-                                <ChevronDown size={12} />
-                              </div>
-                            </div>
-
-                            <div className="sol-stats-row">
-                              <div className="sol-stat-cell">
-                                <div className="sol-stat-val">12.4K</div>
-                                <div className="sol-stat-lbl">Reach</div>
-                                <div className="sol-stat-delta">↑ 28%</div>
-                              </div>
-                              <div className="sol-stat-cell">
-                                <div className="sol-stat-val">3.1K</div>
-                                <div className="sol-stat-lbl">Link Clicks</div>
-                                <div className="sol-stat-delta">↑ 32%</div>
-                              </div>
-                              <div className="sol-stat-cell">
-                                <div className="sol-stat-val">284</div>
-                                <div className="sol-stat-lbl">Leads</div>
-                                <div className="sol-stat-delta">↑ 45%</div>
-                              </div>
-                            </div>
-
-                            {/* Smooth SVG Line Chart */}
-                            <div className="sol-chart-area">
-                              <svg viewBox="0 0 320 80" className="sol-smooth-chart" fill="none">
-                                <defs>
-                                  <linearGradient id="chartGradPromote" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stopColor="#C9952E" stopOpacity="0.35" />
-                                    <stop offset="100%" stopColor="#C9952E" stopOpacity="0.0" />
-                                  </linearGradient>
-                                </defs>
-                                <path
-                                  d="M 10,55 Q 55,62 95,45 T 180,50 T 250,30 T 310,14 L 310,80 L 10,80 Z"
-                                  fill="url(#chartGradPromote)"
-                                />
-                                <path
-                                  d="M 10,55 Q 55,62 95,45 T 180,50 T 250,30 T 310,14"
-                                  stroke="#C9952E"
-                                  strokeWidth="2.5"
-                                  strokeLinecap="round"
-                                />
-                                <circle cx="10" cy="55" r="3.5" fill="#C9952E" />
-                                <circle cx="95" cy="45" r="3.5" fill="#C9952E" />
-                                <circle cx="180" cy="50" r="3.5" fill="#C9952E" />
-                                <circle cx="250" cy="30" r="3.5" fill="#C9952E" />
-                                <circle cx="310" cy="14" r="4.5" fill="#C9952E" stroke="#FFFCF7" strokeWidth="2" />
-                              </svg>
-                            </div>
-                          </div>
-
-                          {/* Audience Card */}
-                          <div className="sol-audience-card">
-                            <div className="sol-aud-title">Audience</div>
-                            <div className="sol-aud-rows">
-                              <div className="sol-aud-row">
-                                <div className="sol-aud-lbl">
-                                  <MapPin size={13} className="sol-aud-icon" />
-                                  <span>Location</span>
-                                </div>
-                                <div className="sol-aud-bar-track">
-                                  <div className="sol-aud-bar-fill" style={{ width: '70%' }} />
-                                </div>
-                              </div>
-                              <div className="sol-aud-row">
-                                <div className="sol-aud-lbl">
-                                  <User size={13} className="sol-aud-icon" />
-                                  <span>Age Group</span>
-                                </div>
-                                <div className="sol-aud-bar-track">
-                                  <div className="sol-aud-bar-fill" style={{ width: '55%' }} />
-                                </div>
-                              </div>
-                              <div className="sol-aud-row">
-                                <div className="sol-aud-lbl">
-                                  <Target size={13} className="sol-aud-icon" />
-                                  <span>Interests</span>
-                                </div>
-                                <div className="sol-aud-bar-track">
-                                  <div className="sol-aud-bar-fill" style={{ width: '42%' }} />
-                                </div>
-                              </div>
-                            </div>
                           </div>
                         </div>
                       )}
